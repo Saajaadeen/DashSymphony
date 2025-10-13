@@ -84,6 +84,7 @@ export default function CardCreateModal({
             <input
               type="text"
               name="name"
+              maxLength={500}
               value={form.name}
               onChange={(e) => updateForm({ name: e.target.value })}
               placeholder="Enter card name"
@@ -100,6 +101,7 @@ export default function CardCreateModal({
               type="url"
               name="url"
               value={form.url}
+              maxLength={1000}
               onChange={(e) => updateForm({ url: e.target.value })}
               placeholder="example.com"
               className="w-full px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
@@ -114,6 +116,7 @@ export default function CardCreateModal({
             <input
               type="url"
               name="imageUrl"
+              maxLength={1000}
               value={form.imageUrl}
               onChange={(e) => updateForm({ imageUrl: e.target.value })}
               placeholder="https://example.com/image.jpg"
@@ -131,6 +134,7 @@ export default function CardCreateModal({
                   <input
                     type="text"
                     name="cardGroup"
+                    maxLength={254}
                     placeholder="New group name"
                     value={form.cardGroup}
                     onChange={(e) => updateForm({ cardGroup: e.target.value })}

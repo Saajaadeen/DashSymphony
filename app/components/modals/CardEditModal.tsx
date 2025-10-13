@@ -84,6 +84,7 @@ export default function CardEditModal({
             </label>
             <input
               type="text"
+              maxLength={254}
               name="name"
               value={form.name}
               onChange={(e) => updateForm({ name: e.target.value })}
@@ -100,6 +101,7 @@ export default function CardEditModal({
             <input
               type="url"
               name="url"
+              maxLength={1000}
               value={form.url}
               onChange={(e) => updateForm({ url: e.target.value })}
               placeholder="example.com"
@@ -114,6 +116,7 @@ export default function CardEditModal({
             <input
               type="url"
               name="imageUrl"
+              maxLength={1000}
               value={form.imageUrl}
               onChange={(e) => updateForm({ imageUrl: e.target.value })}
               placeholder="https://example.com/image.jpg"
@@ -131,6 +134,7 @@ export default function CardEditModal({
                   <input
                     type="text"
                     name="cardGroup"
+                    maxLength={254}
                     placeholder="New group name"
                     value={form.cardGroup}
                     onChange={(e) => updateForm({ cardGroup: e.target.value })}

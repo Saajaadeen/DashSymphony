@@ -4,6 +4,7 @@ import { LockIcon } from "../icons/LockIcon";
 import { EyeOpenIcon } from "../icons/EyeOpenIcon";
 import { GlobeIcon } from "../icons/GlobeIcon";
 import { RocketIcon } from "../icons/RocketIcon";
+import { VerticalEllipsisIcon } from "../icons/VerticalEllipsisIcon";
 
 type Dashboard = {
   id: string;
@@ -14,24 +15,35 @@ type Dashboard = {
   createdAt: Date;
 };
 
-export default function DashboardSidebarForm({ 
+type User = {
+  isAdmin?: boolean;
+};
+
+export default function DashboardSidebarForm({
   user,
-  privateBoard, 
-  publicBoard, 
-  globalBoard, 
-  landingBoard }: 
-    { privateBoard: Dashboard[], 
-      publicBoard: Dashboard[], 
-      globalBoard: Dashboard[], 
-      landingBoard: Dashboard[] 
-    }) {
+  privateBoard,
+  publicBoard,
+  globalBoard,
+  landingBoard,
+}: {
+  user?: User;
+  privateBoard: Dashboard[];
+  publicBoard: Dashboard[];
+  globalBoard: Dashboard[];
+  landingBoard: Dashboard[];
+}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const hasInitialized = useRef(false);
-  
-  const sortedDashboards = [...privateBoard, ...publicBoard, ...globalBoard, ...landingBoard].sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-  );
 
+  // Merge all dashboards and sort by creation date (latest first)
+  const sortedDashboards = [
+    ...privateBoard,
+    ...publicBoard,
+    ...globalBoard,
+    ...landingBoard,
+  ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+  // Group by visibility
   const groupedDashboards: Record<string, Dashboard[]> = {
     PRIVATE: [],
     GLOBAL: [],
@@ -46,6 +58,7 @@ export default function DashboardSidebarForm({
     }
   });
 
+  // Initialize selected dashboard
   useEffect(() => {
     if (!hasInitialized.current && sortedDashboards.length > 0) {
       const currentPanel = searchParams.get("panel");
@@ -54,81 +67,82 @@ export default function DashboardSidebarForm({
       }
       hasInitialized.current = true;
     }
-  }, []);
+  }, [sortedDashboards, searchParams, setSearchParams]);
 
   const handleDashboardClick = (dashboardId: string) => {
     setSearchParams({ panel: dashboardId });
   };
 
+  // Visibility icon helper
   const getVisibilityIcon = (visibility: string) => {
     switch (visibility) {
       case "PRIVATE":
-        return (
-          <LockIcon className="w-6 h-6" />
-        );
+        return <LockIcon className="w-6 h-6" />;
       case "PUBLIC":
-        return (
-          <EyeOpenIcon className="w-6 h-6" />
-        );
+        return <EyeOpenIcon className="w-6 h-6" />;
       case "GLOBAL":
-        return (
-          <GlobeIcon className="w-6 h-6" />
-        );
+        return <GlobeIcon className="w-6 h-6" />;
       case "LANDING":
-        return (
-          <RocketIcon className="w-6 h-6" />
-        );
+        return <RocketIcon className="w-6 h-6" />;
       default:
         return null;
     }
   };
 
+  // Permission helpers
+  const canView = (dashboard: Dashboard) => {
+    return (
+      user?.isAdmin ||
+      dashboard.permissions.includes("READ") ||
+      dashboard.permissions.includes("WRITE")
+    );
+  };
+
+  const canEdit = (dashboard: Dashboard) => {
+    return user?.isAdmin || dashboard.permissions.includes("WRITE");
+  };
+
+  // Render grouped dashboards by visibility
   const renderGroup = (title: string, dashboards: Dashboard[]) => (
     <div key={title} className="mb-6">
       <h3 className="text-white/60 font-medium text-xs uppercase tracking-wide mb-3">
         {title}
       </h3>
+
       {dashboards.length === 0 ? (
         <p className="text-white/30 text-xs italic pl-3">No dashboards</p>
       ) : (
         <div className="space-y-1">
           {dashboards.map((d) => {
+            if (!canView(d)) return null; // hide dashboards user can't view
             const visibility = d.visibility[0] || "PUBLIC";
+
             return (
               <div
                 key={d.id}
-                className="group relative flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-all duration-200"
+                className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2"
               >
                 <button
                   onClick={() => handleDashboardClick(d.id)}
-                  className="flex-1 min-w-0 text-left flex items-center gap-2"
+                  className="flex flex-1 items-center gap-2 text-left"
                 >
-                  <span className="text-white/60 flex-shrink-0">
+                  <span className="flex-shrink-0 text-white/60">
                     {getVisibilityIcon(visibility)}
                   </span>
-                  <p className="font-medium text-white text-sm truncate">
+                  <span className="truncate text-sm font-medium text-white">
                     {d.name}
-                  </p>
+                  </span>
                 </button>
-                <Link
-                  to={`/dashboard/${d.id}/edit`}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white/60 hover:text-white ml-2 flex-shrink-0"
-                  aria-label="Edit dashboard"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+
+                {canEdit(d) && (
+                  <Link
+                    to={`/dashboard/${d.id}/edit`}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white/60 hover:text-white p-1"
+                    aria-label="Edit dashboard"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                    />
-                  </svg>
-                </Link>
+                    <VerticalEllipsisIcon className="w-6 h-6" />
+                  </Link>
+                )}
               </div>
             );
           })}
@@ -142,17 +156,19 @@ export default function DashboardSidebarForm({
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-white">Dashboards</h2>
       </div>
+
       <Link
         to="/dashboard/create"
-        className="mb-6 bg-white/10 hover:bg-white/15 active:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 text-center border border-white/10 hover:border-white/20"
+        className="mb-6 bg-white/10 active:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 text-center border border-white/10"
       >
         + New Dashboard
       </Link>
+
       <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-2">
         {renderGroup("Private", groupedDashboards.PRIVATE)}
         {renderGroup("Global", groupedDashboards.GLOBAL)}
         {renderGroup("Public", groupedDashboards.PUBLIC)}
-        {user?.isAdmin && (renderGroup("Landing", groupedDashboards.LANDING))}
+        {user?.isAdmin && renderGroup("Landing", groupedDashboards.LANDING)}
       </div>
     </aside>
   );

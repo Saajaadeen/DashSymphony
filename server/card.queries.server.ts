@@ -63,19 +63,63 @@ export async function updateCard(
   position: number,
   size: string,
 ) {
-  const card = await prisma.card.update({
-    where: { id: cardId },
-    data: {
-      name,
-      url,
-      imageUrl,
-      cardGroup,
-      position,
-      size,
-    },
+  return await prisma.$transaction(async (tx) => {
+    const currentCard = await tx.card.findUnique({
+      where: { id: cardId },
+      select: { position: true, dashboardId: true },
+    });
+
+    if (!currentCard) throw new Error("Card not found");
+
+    const oldPosition = currentCard.position;
+    const dashboardId = currentCard.dashboardId;
+
+    if (oldPosition !== position) {
+      const cardCount = await tx.card.count({ where: { dashboardId } });
+      const clampedPosition = Math.min(Math.max(position, 1), cardCount);
+
+      if (oldPosition < clampedPosition) {
+        await tx.card.updateMany({
+          where: {
+            dashboardId,
+            position: { gt: oldPosition, lte: clampedPosition },
+          },
+          data: { position: { decrement: 1 } },
+        });
+      } else if (oldPosition > clampedPosition) {
+        await tx.card.updateMany({
+          where: {
+            dashboardId,
+            position: { gte: clampedPosition, lt: oldPosition },
+          },
+          data: { position: { increment: 1 } },
+        });
+      }
+
+      return await tx.card.update({
+        where: { id: cardId },
+        data: {
+          name,
+          url,
+          imageUrl,
+          cardGroup,
+          position: clampedPosition,
+          size,
+        },
+      });
+    }
+
+    return await tx.card.update({
+      where: { id: cardId },
+      data: {
+        name,
+        url,
+        imageUrl,
+        cardGroup,
+        size,
+      },
+    });
   });
-  
-  return card;
 }
 
 export async function deleteCard(cardId: string) {

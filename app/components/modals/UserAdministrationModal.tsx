@@ -112,6 +112,7 @@ export default function UserAdministrationModal({
                 <input
                   type="text"
                   id="loginName"
+                  maxLength={254}
                   name="loginName"
                   value={loginNameValue}
                   onChange={(e) => setLoginNameValue(e.target.value)}
@@ -130,6 +131,7 @@ export default function UserAdministrationModal({
                   type="url"
                   id="loginImgUrl"
                   name="loginImgUrl"
+                  maxLength={1000}
                   value={loginImgValue}
                   onChange={(e) => setLoginImgValue(e.target.value)}
                   className="p-2 text-white bg-white/10 rounded border border-white/20 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"

@@ -72,7 +72,7 @@ export default function DashboardDisplayForm({
                     href={card.url ?? "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full h-full bg-white/10 hover:bg-white/20 rounded-lg shadow-md overflow-hidden transition"
+                    className="block w-full h-full bg-white/10 rounded-lg shadow-md overflow-hidden transition"
                   >
                     {card.imageUrl ? (
                       <img
@@ -91,7 +91,7 @@ export default function DashboardDisplayForm({
 
                   <Link
                     to={`/dashboard/${selectedDashboard.id}/card/${card.id}/edit`}
-                    className="absolute top-2 right-2 text-white/70 hover:text-white p-1 rounded-full hover:bg-gray-700/50 transition-colors text-lg"
+                    className="absolute top-2 right-2 text-white/70 p-1 rounded-full transition-colors text-lg"
                   >
                     ⋮
                   </Link>
@@ -108,9 +108,9 @@ export default function DashboardDisplayForm({
                 to={`/dashboard/${selectedDashboard.id}/card/create?group=${encodeURIComponent(
                   groupName
                 )}`}
-                className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-500 bg-white/5 hover:bg-white/10 hover:border-gray-400 rounded-lg text-white transition-all cursor-pointer p-2 ${sizeClasses.SM}`}
+                className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-500 bg-white/5 rounded-lg text-white transition-all cursor-pointer p-2 ${sizeClasses.SM}`}
               >
-                <span className="text-2xl group-hover:scale-110 transition-transform">
+                <span className="text-2xl transition-transform">
                   +
                 </span>
                 <span className="mt-1 text-xs font-medium">Add</span>
@@ -123,9 +123,9 @@ export default function DashboardDisplayForm({
           <div className="flex justify-start">
             <Link
               to={`/dashboard/${selectedDashboard.id}/card/create`}
-              className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-500 bg-white/5 hover:bg-white/10 hover:border-gray-400 rounded-lg text-white transition-all cursor-pointer p-2 ${sizeClasses.SM}`}
+              className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-500 bg-white/5  rounded-lg text-white transition-all cursor-pointer p-2 ${sizeClasses.SM}`}
             >
-              <span className="text-2xl group-hover:scale-110 transition-transform">
+              <span className="text-2xl transition-transform">
                 +
               </span>
               <span className="mt-1 text-xs font-medium">Add</span>

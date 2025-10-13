@@ -31,6 +31,7 @@ export default function RegisterForm({ error }: RegisterFormProps) {
                 name="firstName"
                 type="text"
                 placeholder="Enter your first name"
+                maxLength={500}
                 required
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
               />
@@ -45,6 +46,7 @@ export default function RegisterForm({ error }: RegisterFormProps) {
                 name="lastName"
                 type="text"
                 placeholder="Enter your last name"
+                maxLength={500}
                 required
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
               />
@@ -59,6 +61,7 @@ export default function RegisterForm({ error }: RegisterFormProps) {
                 name="email"
                 type="email"
                 placeholder="Enter your email"
+                maxLength={254}
                 required
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
               />

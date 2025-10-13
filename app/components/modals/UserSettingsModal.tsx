@@ -122,6 +122,7 @@ export default function UserSettingsModal({ user }: UserSettingsModalProps) {
                 <input
                   type="text"
                   id="firstName"
+                  maxLength={254}
                   name="firstName"
                   defaultValue={user?.firstName}
                   className="p-2 text-white bg-white/10 rounded border border-white/20 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
@@ -134,6 +135,7 @@ export default function UserSettingsModal({ user }: UserSettingsModalProps) {
                 <input
                   type="text"
                   id="lastName"
+                  maxLength={254}
                   name="lastName"
                   defaultValue={user?.lastName}
                   className="p-2 text-white bg-white/10 rounded border border-white/20 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
@@ -171,6 +173,7 @@ export default function UserSettingsModal({ user }: UserSettingsModalProps) {
                   type="email"
                   id="email"
                   name="email"
+                  maxLength={254}
                   defaultValue={user?.email}
                   className="p-2 text-white bg-white/10 rounded border border-white/20 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
                 />

@@ -20,7 +20,7 @@ export default function DashboardNavbarForm({ user, notifications }) {
       <NotificationsDropdownForm 
         items={notifications}
         trigger={
-          <button className="relative p-2 rounded-full hover:bg-white/10 transition-colors">
+          <button className="relative p-2 rounded-full transition-colors">
             <BellIcon className="h-8 w-8 text-white" />
           </button>
         }
@@ -29,7 +29,7 @@ export default function DashboardNavbarForm({ user, notifications }) {
 
         <MenuDropdownForm
           trigger={
-            <button className="p-2 rounded-full hover:bg-white/10 transition-colors">
+            <button className="p-2 rounded-full transition-colors">
               <UserCircleIcon className="h-8 w-8 text-white" />
             </button>
           }

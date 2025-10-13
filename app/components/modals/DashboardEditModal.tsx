@@ -152,6 +152,7 @@ export default function DashboardEditModal({
             <input
               type="text"
               name="name"
+              maxLength={254}
               value={form.name}
               onChange={(e) => updateForm("name", e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
