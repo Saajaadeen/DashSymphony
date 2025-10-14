@@ -11,6 +11,8 @@ export default [
         route("notifications", "./routes/notifications/usernotifications.tsx"),
         route("administration", "./routes/administration/useradministration.tsx"),
         route("create", "./routes/dashboard/dashboardcreate.tsx"),
+        route("team/create", "./routes/dashboard/teamcreate.tsx"),
+        route(":id/team/edit", "./routes/dashboard/teamedit.tsx"),
         route(":id/edit", "./routes/dashboard/dashboardedit.tsx"),
         route(":id/card/create", "./routes/card/cardcreate.tsx"),
         route(":dashboardId/card/:cardId/edit", "./routes/card/cardedit.tsx")

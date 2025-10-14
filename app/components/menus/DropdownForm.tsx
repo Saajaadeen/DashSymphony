@@ -31,7 +31,7 @@ export default function MenuDropdown({ items, trigger }: DropdownProps) {
       <div onClick={() => setOpen(!open)}>{trigger}</div>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-xl z-50">
+        <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-gray-700 backdrop-blur-sm border border-white/10 shadow-xl z-50">
           <div className="flex flex-col py-2">
             {items.map((item) => (
               <Link

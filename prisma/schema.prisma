@@ -18,14 +18,8 @@ model User {
   updatedAt           DateTime?     @updatedAt
   isAdmin             Boolean       @default(false)
   dashboards          Dashboard[]
-  resetRequested      Boolean       @default(false)
-  resetRequestedAt    DateTime?     
-  resetApproved       Boolean       @default(false)
-  resetApprovedById   String?
-  deleteRequested     Boolean       @default(false)
-  deleteRequestedAt   DateTime?
-  deleteApproved      Boolean       @default(false)
-  deleteApprovedById  String?
+  teamId              String?
+  team                Teams?        @relation(fields: [teamId], references: [id])
 }
 
 model Dashboard {
@@ -36,8 +30,11 @@ model Dashboard {
   permissions         String[]
   userId              String?
   user                User?         @relation(fields: [userId], references: [id])
+  teamId              String?
+  team                Teams?        @relation("TeamDashboards", fields: [teamId], references: [id])
   cards               Card[]
   createdAt           DateTime      @default(now())
+  createdById         String
   updatedAt           DateTime      @updatedAt
   AppSettings         AppSettings[]
 }
@@ -51,12 +48,29 @@ model Card {
   dashboard           Dashboard     @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
-  cardGroup           String
+  groupId             String?
+  group               Groups?       @relation(fields: [groupId], references: [id])
   size                String
   position            Int?
+}
 
-  @@index([dashboardId])
-  @@index([cardGroup])
+model Groups {
+  id                  String        @id @default(uuid())
+  name                String
+  cards               Card[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  isAdmin             Boolean       @default(false)
+}
+
+model Teams {
+  id                  String        @id @default(uuid())
+  name                String
+  users               User[]
+  dashboards          Dashboard[]   @relation("TeamDashboards")
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  isAdmin             Boolean       @default(false)
 }
 
 model AppSettings {

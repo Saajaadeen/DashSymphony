@@ -45,7 +45,8 @@ const PERMISSION_CONFIG = {
 export default function DashboardCreateModal({
   isAdmin = false,
   userId,
-}: DashboardCreateModalProps) {
+  teams = [],
+}: DashboardCreateModalProps & { teams?: { id: string; name: string; isAdmin: boolean }[] }) {
   const actionData = useActionData<{ error?: string }>();
 
   const availableVisibilities: Visibility[] = isAdmin
@@ -59,6 +60,7 @@ export default function DashboardCreateModal({
     description: "",
     visibility: "PRIVATE" as Visibility,
     permissions: ["READ", "WRITE", "DELETE"] as Permission[],
+    teamId: "", // selected team
   });
 
   const currentConfig = VISIBILITY_CONFIG[form.visibility];
@@ -99,7 +101,7 @@ export default function DashboardCreateModal({
   };
 
   const getPermissionStyle = (perm: Permission) => {
-    const { isActive, isLocked, isDisabled, isToggleable } = getPermissionState(perm);
+    const { isActive, isLocked, isDisabled } = getPermissionState(perm);
 
     if (isDisabled) return "bg-gray-900/40 text-gray-600 border border-gray-700 cursor-not-allowed";
     if (isLocked) return "bg-blue-700/80 text-blue-200 border border-blue-600 cursor-not-allowed";
@@ -108,6 +110,9 @@ export default function DashboardCreateModal({
   };
 
   const shouldIncludeUserId = form.visibility === "PRIVATE";
+
+  const filteredTeams = isAdmin ? teams : teams.filter((t) => !t.isAdmin);
+  const hasTeams = filteredTeams.length > 0;
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -131,7 +136,9 @@ export default function DashboardCreateModal({
           <input type="hidden" name="visibility" value={JSON.stringify([form.visibility])} />
           <input type="hidden" name="permissions" value={form.permissions.join(",")} />
           <input type="hidden" name="userId" value={userId} />
+          <input type="hidden" name="createdById" value={userId} />
           <input type="hidden" name="connectUser" value={shouldIncludeUserId ? "true" : "false"} />
+          <input type="hidden" name="teamId" value={form.teamId} />
 
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">Name</label>
@@ -155,6 +162,27 @@ export default function DashboardCreateModal({
               rows={3}
               className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
+          </div>
+
+          <div>
+            <label className="block text-gray-300 text-sm font-medium mb-2">Team</label>
+            {hasTeams ? (
+              <select
+                name="team"
+                value={form.teamId}
+                onChange={(e) => updateForm("teamId", e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select a team</option>
+                {filteredTeams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name} {team.isAdmin ? "(Admin)" : ""}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-gray-400 text-sm">No teams available. Create a team to select one.</p>
+            )}
           </div>
 
           <div>
@@ -211,6 +239,7 @@ export default function DashboardCreateModal({
             <button
               type="submit"
               className="flex-1 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-xl text-white font-medium shadow-lg shadow-blue-500/30 transition-all"
+              disabled={!hasTeams}
             >
               Create Dashboard
             </button>

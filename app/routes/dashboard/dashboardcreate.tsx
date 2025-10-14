@@ -6,6 +6,7 @@ import {
 } from "react-router";
 import {
   createDashboard,
+  getTeam,
   getUserDetails,
 } from "server/dashboard.queries.server";
 import { requireUserId, getUserId } from "server/session.server";
@@ -15,7 +16,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   await requireUserId(request);
   const userId = await getUserId(request);
   const user = await getUserDetails(userId);
-  return { user };
+  const teams = await getTeam();
+  return { user, teams };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -28,9 +30,20 @@ export async function action({ request }: ActionFunctionArgs) {
   const permissions = permissionsRaw.split(",");
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
+  const createdById = formData.get("createdById") as string;
+  const teamId = formData.get("teamId") as string;
 
   try {
-    await createDashboard( userId, visibility, permissions, name, description, connectUser );
+    await createDashboard( 
+      userId, 
+      visibility, 
+      permissions, 
+      name, 
+      description, 
+      connectUser, 
+      createdById,
+      teamId
+    );
     return redirect("/dashboard");
   } catch (error) {
     return { error: error instanceof Error ? error.message : "An error occurred creating the dashboard" };
@@ -38,6 +51,9 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function DashboardCreate() {
-  const { user } = useLoaderData<typeof loader>();
-  return <DashboardCreateModal isAdmin={user?.isAdmin} userId={user?.id} />;
+  const { user, teams } = useLoaderData<typeof loader>();
+  return <DashboardCreateModal
+    teams={teams}
+    isAdmin={user?.isAdmin} 
+    userId={user?.id} />;
 }

@@ -9,7 +9,8 @@ export default function DashboardForm({
   privateDashboards, 
   publicDashboards, 
   globalDashboards, 
-  landingDashboards, 
+  landingDashboards,
+  teamsDashboard, 
   cards, 
   selectedDashboard }: any) {
 
@@ -30,6 +31,7 @@ export default function DashboardForm({
             publicBoard={publicDashboards}
             globalBoard={globalDashboards}
             landingBoard={landingDashboards}
+            teamsBoard={teamsDashboard}
           />
         </aside>
 

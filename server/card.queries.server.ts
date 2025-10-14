@@ -35,7 +35,6 @@ export async function getCardInfo(dashboardId: string) {
     const cards = await prisma.card.findMany({
         where: { dashboardId },
         select: {
-          cardGroup: true,
           position: true,
         }
     });

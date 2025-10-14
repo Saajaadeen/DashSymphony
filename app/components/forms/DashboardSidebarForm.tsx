@@ -19,23 +19,30 @@ type User = {
   isAdmin?: boolean;
 };
 
+type Team = {
+  id: string;
+  name: string;
+  isAdmin: boolean;
+};
+
 export default function DashboardSidebarForm({
   user,
-  privateBoard,
-  publicBoard,
-  globalBoard,
-  landingBoard,
+  privateBoard = [],
+  publicBoard = [],
+  globalBoard = [],
+  landingBoard = [],
+  teamsBoard = [],
 }: {
   user?: User;
-  privateBoard: Dashboard[];
-  publicBoard: Dashboard[];
-  globalBoard: Dashboard[];
-  landingBoard: Dashboard[];
+  teamsBoard?: Team[];
+  privateBoard?: Dashboard[];
+  publicBoard?: Dashboard[];
+  globalBoard?: Dashboard[];
+  landingBoard?: Dashboard[];
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const hasInitialized = useRef(false);
 
-  // Merge all dashboards and sort by creation date (latest first)
   const sortedDashboards = [
     ...privateBoard,
     ...publicBoard,
@@ -43,7 +50,6 @@ export default function DashboardSidebarForm({
     ...landingBoard,
   ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-  // Group by visibility
   const groupedDashboards: Record<string, Dashboard[]> = {
     PRIVATE: [],
     GLOBAL: [],
@@ -53,12 +59,14 @@ export default function DashboardSidebarForm({
 
   sortedDashboards.forEach((d) => {
     const vis = d.visibility[0] || "PUBLIC";
-    if (groupedDashboards[vis]) {
-      groupedDashboards[vis].push(d);
-    }
+    if (groupedDashboards[vis]) groupedDashboards[vis].push(d);
   });
 
-  // Initialize selected dashboard
+  const filteredTeams = (teamsBoard || []).filter((team) => {
+    if (team.isAdmin) return user?.isAdmin;
+    return true;
+  });
+
   useEffect(() => {
     if (!hasInitialized.current && sortedDashboards.length > 0) {
       const currentPanel = searchParams.get("panel");
@@ -73,7 +81,10 @@ export default function DashboardSidebarForm({
     setSearchParams({ panel: dashboardId });
   };
 
-  // Visibility icon helper
+  const handleTeamClick = (teamId: string) => {
+    setSearchParams({ team: teamId });
+  };
+
   const getVisibilityIcon = (visibility: string) => {
     switch (visibility) {
       case "PRIVATE":
@@ -89,34 +100,26 @@ export default function DashboardSidebarForm({
     }
   };
 
-  // Permission helpers
-  const canView = (dashboard: Dashboard) => {
-    return (
-      user?.isAdmin ||
-      dashboard.permissions.includes("READ") ||
-      dashboard.permissions.includes("WRITE")
-    );
-  };
+  const canView = (dashboard: Dashboard) =>
+    user?.isAdmin ||
+    dashboard.permissions.includes("READ") ||
+    dashboard.permissions.includes("WRITE");
 
-  const canEdit = (dashboard: Dashboard) => {
-    return user?.isAdmin || dashboard.permissions.includes("WRITE");
-  };
+  const canEdit = (dashboard: Dashboard) =>
+    user?.isAdmin || dashboard.permissions.includes("WRITE");
 
-  // Render grouped dashboards by visibility
   const renderGroup = (title: string, dashboards: Dashboard[]) => (
     <div key={title} className="mb-6">
       <h3 className="text-white/60 font-medium text-xs uppercase tracking-wide mb-3">
         {title}
       </h3>
-
       {dashboards.length === 0 ? (
         <p className="text-white/30 text-xs italic pl-3">No dashboards</p>
       ) : (
         <div className="space-y-1">
           {dashboards.map((d) => {
-            if (!canView(d)) return null; // hide dashboards user can't view
+            if (!canView(d)) return null;
             const visibility = d.visibility[0] || "PUBLIC";
-
             return (
               <div
                 key={d.id}
@@ -151,24 +154,72 @@ export default function DashboardSidebarForm({
     </div>
   );
 
+  const renderTeams = (teams: Team[]) => (
+    <div className="mb-6">
+      {(!teams || teams.length === 0) ? (
+        <p className="text-white/30 text-xs italic pl-3">
+          No teams available — create a team to select
+        </p>
+      ) : (
+        <div className="space-y-1">
+          {teams.map((team) => (
+            <div
+              key={team.id}
+              className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2"
+            >
+              <button
+                onClick={() => handleTeamClick(team.id)}
+                className="flex flex-1 items-center gap-2 text-left"
+              >
+                <span className="truncate text-sm font-medium text-white">
+                  {team.name}
+                </span>
+              </button>
+
+              <Link
+                to={`/dashboard/${team.id}/team/edit`}
+                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white/60 hover:text-white p-1"
+                aria-label="Edit team"
+              >
+                <VerticalEllipsisIcon className="w-6 h-6" />
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <aside className="w-[400px] h-[1000px] bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 flex flex-col shadow-xl overflow-hidden">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-white">Dashboards</h2>
       </div>
-
       <Link
         to="/dashboard/create"
-        className="mb-6 bg-white/10 active:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 text-center border border-white/10"
+        className="mb-4 w-full bg-white/10 active:bg-white/20 text-white font-medium py-3 px-4 rounded-xl text-center transition-all duration-200 border border-white/10"
       >
         + New Dashboard
       </Link>
-
       <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-2">
         {renderGroup("Private", groupedDashboards.PRIVATE)}
         {renderGroup("Global", groupedDashboards.GLOBAL)}
         {renderGroup("Public", groupedDashboards.PUBLIC)}
         {user?.isAdmin && renderGroup("Landing", groupedDashboards.LANDING)}
+      </div>
+
+      <div className="flex items-center justify-between mt-6 mb-4">
+        <h2 className="text-xl font-semibold text-white">Teams</h2>
+      </div>
+      <Link
+        to="/dashboard/team/create"
+        className="mb-4 w-full bg-white/10 active:bg-white/20 text-white font-medium py-3 px-4 rounded-xl text-center transition-all duration-200 border border-white/10"
+      >
+        + New Team
+      </Link>
+
+      <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-2">
+        {teamsBoard && renderTeams(filteredTeams)}
       </div>
     </aside>
   );

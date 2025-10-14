@@ -120,7 +120,9 @@ export async function createDashboard(
   permissions: string[],
   name: string,
   description: string,
-  connectUser: boolean
+  connectUser: boolean,
+  createdById: string,
+  teamId: string,
 ) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -139,6 +141,8 @@ export async function createDashboard(
     description,
     visibility,
     permissions,
+    createdById,
+    teamId,
   };
 
   if (connectUser) {
@@ -263,4 +267,48 @@ export async function updateLandingSettings({
       landingDashboardId: selectedLandingId
     }
   })
+}
+
+export async function createTeam({
+  name, 
+  isAdmin
+}: {
+  name: string;
+  isAdmin: boolean;
+}) {
+  return prisma.teams.create({
+    data: {
+      name,
+      isAdmin,
+    },
+  });
+}
+
+export async function getTeam() {
+  return prisma.teams.findMany({
+    select: {
+      id: true,
+      name: true,
+      isAdmin: true,
+    }
+  })
+}
+
+export async function getTeamById(id: string) {
+  return await prisma.teams.findUnique({
+    where: { id },
+  });
+}
+
+export async function updateTeam(id: string, name: string, isAdmin: boolean) {
+  return prisma.teams.update({
+    where: { id },
+    data: { name, isAdmin },
+  });
+}
+
+export async function deleteTeam(id: string) {
+  return prisma.teams.delete({
+    where: { id },
+  });
 }
