@@ -14,8 +14,10 @@ export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData();
     const name = formData.get("name") as string;
     const isAdmin = formData.get("isAdmin") === "on";
+    const privateTeam = formData.get("privateTeam") === "on";
+    const userId = formData.get("userId") as string;
 
-    createTeam({name, isAdmin});
+    createTeam({name, isAdmin, privateTeam, userId});
     return redirect("/dashboard");
 }
 

@@ -1,14 +1,21 @@
 import { useState, useRef } from "react";
-import { Form, Link, useActionData } from "react-router";
+import { Link, useActionData } from "react-router";
 
 type Visibility = "GLOBAL" | "PRIVATE" | "PUBLIC" | "LANDING";
 type Permission = "READ" | "WRITE" | "DELETE";
+
+interface Team {
+  id: string;
+  name: string;
+  isAdmin: boolean;
+}
 
 interface DashboardEditModalProps {
   isAdmin?: boolean;
   userId: string;
   dashboard: any;
   dashboardId?: string;
+  teams: Team[];
 }
 
 const VISIBILITY_CONFIG = {
@@ -49,6 +56,7 @@ export default function DashboardEditModal({
   userId,
   dashboard,
   dashboardId,
+  teams,
 }: DashboardEditModalProps) {
   const actionData = useActionData<{ error?: string }>();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -59,15 +67,23 @@ export default function DashboardEditModal({
 
   const allPermissions: Permission[] = ["READ", "WRITE", "DELETE"];
 
-  const originalVisibility = useRef((dashboard?.visibility?.[0] ?? "PRIVATE") as Visibility);
-  const originalPermissions = useRef((dashboard?.permissions ?? ["READ", "WRITE", "DELETE"]) as Permission[]);
+  const originalVisibility = useRef(
+    (dashboard?.visibility?.[0] ?? "PRIVATE") as Visibility
+  );
+  const originalPermissions = useRef(
+    (dashboard?.permissions ?? ["READ", "WRITE", "DELETE"]) as Permission[]
+  );
 
   const [form, setForm] = useState({
     name: dashboard?.name ?? "",
     description: dashboard?.description ?? "",
     visibility: originalVisibility.current,
     permissions: originalPermissions.current,
+    teamId: dashboard?.teamId ?? "",
   });
+
+  const hasTeams = Array.isArray(teams) && teams.length > 0;
+  const filteredTeams = isAdmin ? teams : teams.filter((t) => !t.isAdmin);
 
   const currentConfig = VISIBILITY_CONFIG[form.visibility];
 
@@ -76,12 +92,13 @@ export default function DashboardEditModal({
 
   const handleVisibilityChange = (vis: Visibility) => {
     if ((vis === "GLOBAL" || vis === "LANDING") && !isAdmin) return;
-    
+
     const newConfig = VISIBILITY_CONFIG[vis];
-    const newPermissions = vis === originalVisibility.current 
-      ? [...originalPermissions.current]
-      : [...newConfig.lockedPermissions];
-    
+    const newPermissions =
+      vis === originalVisibility.current
+        ? [...originalPermissions.current]
+        : [...newConfig.lockedPermissions];
+
     setForm((prev) => ({
       ...prev,
       visibility: vis,
@@ -112,15 +129,18 @@ export default function DashboardEditModal({
   };
 
   const getPermissionStyle = (perm: Permission) => {
-    const { isActive, isLocked, isDisabled, isToggleable } = getPermissionState(perm);
+    const { isActive, isLocked, isDisabled } = getPermissionState(perm);
 
-    if (isDisabled) return "bg-gray-900/40 text-gray-600 border border-gray-700 cursor-not-allowed";
-    if (isLocked) return "bg-blue-700/80 text-blue-200 border border-blue-600 cursor-not-allowed";
+    if (isDisabled)
+      return "bg-gray-900/40 text-gray-600 border border-gray-700 cursor-not-allowed";
+    if (isLocked)
+      return "bg-blue-700/80 text-blue-200 border border-blue-600 cursor-not-allowed";
     if (isActive) return "bg-blue-600 text-white hover:bg-blue-500";
     return "bg-gray-800/60 text-gray-400 hover:bg-gray-700";
   };
 
   const shouldIncludeUserId = form.visibility === "PRIVATE";
+  const teamSelectDisabled = form.visibility === "PRIVATE";
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -140,7 +160,7 @@ export default function DashboardEditModal({
           </div>
         )}
 
-        <Form method="post" className="space-y-5">
+        <form method="post" action={`/dashboard/${dashboardId}/edit`} className="space-y-5">
           <input type="hidden" name="intent" value="update" />
           <input type="hidden" name="dashboardId" value={dashboardId} />
           <input type="hidden" name="visibility" value={JSON.stringify([form.visibility])} />
@@ -169,6 +189,34 @@ export default function DashboardEditModal({
               rows={3}
               className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
+          </div>
+
+          <div>
+            <label className="block text-gray-300 text-sm font-medium mb-2">Team</label>
+            {hasTeams ? (
+              <select
+                name="teamId"
+                value={form.teamId}
+                disabled={teamSelectDisabled}
+                onChange={(e) => updateForm("teamId", e.target.value)}
+                className={`w-full px-4 py-3 rounded-xl border ${
+                  teamSelectDisabled
+                    ? "bg-gray-800/30 border-gray-700 text-gray-500 cursor-not-allowed"
+                    : "bg-gray-800/50 border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                }`}
+              >
+                <option value="">Select a team</option>
+                {filteredTeams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name} {team.isAdmin ? "(Admin)" : ""}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-gray-400 text-sm">
+                No teams available. Create a team to select one.
+              </p>
+            )}
           </div>
 
           <div>
@@ -229,9 +277,9 @@ export default function DashboardEditModal({
               Save Changes
             </button>
           </div>
-        </Form>
+        </form>
 
-        <Form method="post" className="mt-6 space-y-3">
+        <form method="post" className="mt-6 space-y-3">
           <input type="hidden" name="intent" value="delete" />
           <input type="hidden" name="dashboardId" value={dashboardId} />
 
@@ -256,7 +304,7 @@ export default function DashboardEditModal({
           >
             Delete Dashboard
           </button>
-        </Form>
+        </form>
       </div>
     </div>
   );

@@ -9,7 +9,6 @@ datasource db {
 
 model User {
   id                  String        @id @default(uuid())
-  oAuthId             String?       @unique
   email               String        @unique
   password            String?
   firstName           String?
@@ -18,8 +17,7 @@ model User {
   updatedAt           DateTime?     @updatedAt
   isAdmin             Boolean       @default(false)
   dashboards          Dashboard[]
-  teamId              String?
-  team                Teams?        @relation(fields: [teamId], references: [id])
+  teamAccesses        TeamAccess[]
 }
 
 model Dashboard {
@@ -59,6 +57,7 @@ model Groups {
   name                String
   cards               Card[]
   createdAt           DateTime      @default(now())
+  createdById         String?
   updatedAt           DateTime      @updatedAt
   isAdmin             Boolean       @default(false)
 }
@@ -66,11 +65,26 @@ model Groups {
 model Teams {
   id                  String        @id @default(uuid())
   name                String
-  users               User[]
   dashboards          Dashboard[]   @relation("TeamDashboards")
   createdAt           DateTime      @default(now())
+  createdById         String?
   updatedAt           DateTime      @updatedAt
   isAdmin             Boolean       @default(false)
+  privateTeam         Boolean       @default(false)
+  accessCode          String?
+  teamAccesses        TeamAccess[]
+}
+
+model TeamAccess {
+  id             String     @id @default(uuid())
+  teamId         String
+  userId         String
+  team           Teams      @relation(fields: [teamId], references: [id])
+  user           User       @relation(fields: [userId], references: [id])
+  accessCode     String
+  createdAt      DateTime   @default(now())
+
+  @@unique([teamId, userId])     
 }
 
 model AppSettings {

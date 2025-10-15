@@ -1,8 +1,8 @@
 import { XMarkIcon } from "../icons/XMarkIcon";
-import { Link } from "react-router";
-import { useEffect, useState } from "react";
+import { Link, useActionData } from "react-router";
+import { useEffect, useState, useRef } from "react";
 
-type Tab = "home" | "personal" | "security";
+type Tab = "home" | "personal" | "security" | "teams";
 
 interface User {
   firstName?: string;
@@ -13,12 +13,32 @@ interface User {
   createdAt?: string;
 }
 
-interface UserSettingsModalProps {
-  user: User;
+interface Team {
+  id: string;
+  name: string;
+  isAdmin: boolean;
+  privateTeam: boolean;
 }
 
-export default function UserSettingsModal({ user }: UserSettingsModalProps) {
+interface TeamsData {
+  publicTeams?: Team[];
+  teamOwner?: Team[];
+}
+
+interface UserSettingsModalProps {
+  user: User;
+  teams: TeamsData | Team[];
+}
+
+export default function UserSettingsModal({
+  user,
+  teams,
+}: UserSettingsModalProps) {
+  const actionData = useActionData<{ error?: string }>();
   const [activeTab, setActiveTab] = useState<Tab>("home");
+  const [selectedTeamId, setSelectedTeamId] = useState("");
+  const [accessCode, setAccessCode] = useState(Array(10).fill(""));
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     document.body.classList.add("overflow-hidden");
@@ -27,11 +47,68 @@ export default function UserSettingsModal({ user }: UserSettingsModalProps) {
     };
   }, []);
 
-  const tabs = [
+  const flatTeams = Array.isArray(teams)
+    ? teams
+    : [...(teams?.publicTeams || []), ...(teams?.teamOwner || [])];
+
+  const uniqueTeams = flatTeams.filter(
+    (team, index, self) => index === self.findIndex((t) => t.id === team.id)
+  );
+
+  const selectedTeam = uniqueTeams.find((team) => team.id === selectedTeamId);
+  const isPrivateTeam = selectedTeam?.privateTeam;
+
+  const handleTeamChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedTeamId(e.target.value);
+    setAccessCode(Array(10).fill(""));
+  };
+
+  const handleAccessCodeChange = (index: number, value: string) => {
+    if (value.length > 1) return;
+
+    const newCode = [...accessCode];
+    newCode[index] = value;
+    setAccessCode(newCode);
+
+    if (value && index < 9) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Backspace" && !accessCode[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").slice(0, 10);
+    const newCode = [...accessCode];
+
+    for (let i = 0; i < pastedData.length; i++) {
+      newCode[i] = pastedData[i];
+    }
+
+    setAccessCode(newCode);
+
+    const nextEmptyIndex = Math.min(pastedData.length, 9);
+    inputRefs.current[nextEmptyIndex]?.focus();
+  };
+
+  const allTabs = [
     { id: "home" as Tab, label: "Home" },
     { id: "personal" as Tab, label: "Personal Info" },
     { id: "security" as Tab, label: "Security" },
+    { id: "teams" as Tab, label: "Teams" },
   ];
+
+  const tabs = !user?.isAdmin
+    ? allTabs
+    : allTabs.filter((tab) => tab.id !== "teams");
 
   const getTabTitle = () => {
     return tabs.find((tab) => tab.id === activeTab)?.label ?? "";
@@ -39,6 +116,11 @@ export default function UserSettingsModal({ user }: UserSettingsModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
+      {actionData?.error && (
+        <div className="absolute top-10 left-1/2 transform -translate-x-1/2 z-50 mb-4 p-4 bg-red-900/80 border border-red-700 rounded-xl text-red-200 text-sm shadow-lg">
+          {actionData.error}
+        </div>
+      )}
       <div className="w-full max-w-4xl h-[500px] flex bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl shadow-xl overflow-hidden">
         <aside className="w-1/4 bg-white/10 p-6 flex flex-col gap-2 border-r border-white/20">
           <h2 className="text-lg font-semibold text-white mb-2">Menu</h2>
@@ -93,7 +175,6 @@ export default function UserSettingsModal({ user }: UserSettingsModalProps) {
                     })
                   : "N/A"}
               </p>
-
               <p>
                 <strong>Member Since:</strong>{" "}
                 {user?.createdAt
@@ -221,6 +302,118 @@ export default function UserSettingsModal({ user }: UserSettingsModalProps) {
                   className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 rounded text-white font-medium transition-colors"
                 >
                   Save Changes
+                </button>
+              </div>
+            </form>
+          )}
+
+          {activeTab === "teams" && (
+            <form
+              action="/dashboard/settings"
+              method="post"
+              className="space-y-4 max-w-md mx-auto"
+            >
+              <div className="flex flex-col">
+                <label
+                  htmlFor="teamSelect"
+                  className="text-sm mb-1 font-medium"
+                >
+                  Select a Team
+                </label>
+
+                <select
+                  name="teamId"
+                  id="teamSelect"
+                  value={selectedTeamId}
+                  onChange={handleTeamChange}
+                  className="p-2 bg-white/10 text-white rounded border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                >
+                  <option value="" disabled>
+                    Choose a team...
+                  </option>
+
+                  {user?.isAdmin ? (
+                    <>
+                      <optgroup label="Admin Teams">
+                        {uniqueTeams
+                          .filter((team) => team.isAdmin)
+                          .map((team) => (
+                            <option key={team.id} value={team.id}>
+                              {team.name} (Admin)
+                              {team.privateTeam ? " 🔒" : ""}
+                            </option>
+                          ))}
+                      </optgroup>
+                      <optgroup label="User Teams">
+                        {uniqueTeams
+                          .filter((team) => !team.isAdmin)
+                          .map((team) => (
+                            <option key={team.id} value={team.id}>
+                              {team.name}
+                              {team.privateTeam ? " 🔒" : ""}
+                            </option>
+                          ))}
+                      </optgroup>
+                    </>
+                  ) : (
+                    uniqueTeams
+                      .filter((team) => !team.isAdmin)
+                      .map((team) => (
+                        <option key={team.id} value={team.id}>
+                          {team.name}
+                          {team.privateTeam ? " 🔒" : ""}
+                        </option>
+                      ))
+                  )}
+                </select>
+              </div>
+
+              {isPrivateTeam && (
+                <div className="flex flex-col">
+                  <label className="text-sm mb-2 font-medium">
+                    Enter Access Code
+                  </label>
+                  <div className="flex gap-2 justify-center">
+                    {accessCode.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(el) => (inputRefs.current[index] = el)}
+                        type="text"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) =>
+                          handleAccessCodeChange(index, e.target.value)
+                        }
+                        onKeyDown={(e) => handleKeyDown(index, e)}
+                        onPaste={index === 0 ? handlePaste : undefined}
+                        className="w-10 h-12 text-center text-xl font-mono bg-white/10 text-white rounded border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                      />
+                    ))}
+                  </div>
+                  <input
+                    type="hidden"
+                    name="accessCode"
+                    value={accessCode.join("")}
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-6">
+                <Link
+                  to="/dashboard"
+                  className="flex-1 py-3 px-4 bg-white/10 hover:bg-white/20 rounded text-white font-medium text-center transition-colors"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="submit"
+                  disabled={
+                    !selectedTeamId ||
+                    (isPrivateTeam && accessCode.some((d) => !d))
+                  }
+                  className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 rounded text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Join Team
                 </button>
               </div>
             </form>

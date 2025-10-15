@@ -6,7 +6,7 @@ import {
 } from "react-router";
 import {
   createDashboard,
-  getTeam,
+  getTeams,
   getUserDetails,
 } from "server/dashboard.queries.server";
 import { requireUserId, getUserId } from "server/session.server";
@@ -16,7 +16,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   await requireUserId(request);
   const userId = await getUserId(request);
   const user = await getUserDetails(userId);
-  const teams = await getTeam();
+  const teams = await getTeams(userId);
   return { user, teams };
 }
 

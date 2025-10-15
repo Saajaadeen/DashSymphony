@@ -9,7 +9,7 @@ import {
   getLandingDashboards,
   getNotification,
   getUserDetails,
-  getTeam,
+  getTeams,
 } from "server/dashboard.queries.server";
 import { getUserId, requireUserId } from "server/session.server";
 import DashboardForm from "~/components/forms/DashboardForm";
@@ -23,7 +23,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const privateDashboards = await getPrivateDashboards(userId);
   const publicDashboards = await getPublicDashboards();
   const globalDashboards = await getGlobalDashboards();
-  const teamsDashboard = await getTeam();
+  const teamsDashboard = await getTeams(userId);
 
   let landingDashboards: any[] = [];
   if (user?.isAdmin) {

@@ -25,8 +25,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const loginInfo = await getLoginInfo();
   const landingPages = await getLandingDashboards();
 
-  console.log(loginInfo)
-
   return { isAdmin, loginInfo, landingPages };
 }
 

@@ -5,20 +5,34 @@ interface TeamEditModalProps {
   teamId: string;
   name: string;
   isAdmin: boolean;
-  userIsAdmin: boolean; // pass current user admin status
+  privateTeam: boolean;
+  userIsAdmin: boolean;
+  teamAccessCode: string;
+  owner: string;
+  user: string;
 }
 
-export default function TeamEditModal({ teamId, name, isAdmin, userIsAdmin }: TeamEditModalProps) {
+export default function TeamEditModal({
+  teamId,
+  name,
+  isAdmin,
+  userIsAdmin,
+  teamAccessCode,
+  privateTeam,
+  owner,
+  user,
+}: TeamEditModalProps) {
   const actionData = useActionData<{ error?: string }>();
 
   const [form, setForm] = useState({
     name: name || "",
     isAdmin: isAdmin || false,
+    privateTeam: privateTeam || false,
   });
 
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const updateForm = (key: keyof typeof form, value: any) =>
+  const updateForm = (key: keyof typeof form, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
   return (
@@ -27,11 +41,25 @@ export default function TeamEditModal({ teamId, name, isAdmin, userIsAdmin }: Te
         <Link
           to="/dashboard"
           className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-700 text-2xl"
+          aria-label="Close modal"
         >
           ✕
         </Link>
 
-        <h3 className="text-white text-2xl font-bold mb-6">Edit Team</h3>
+        {privateTeam && (
+          <div className="flex justify-between mr-5">
+            <h2 className="text-white text-2xl font-bold mb-6">Edit Team</h2>
+            <form method="post" action={`/dashboard/${teamId}/team/edit`}>
+              <input type="hidden" name="intent" value="leave" />
+              <input type="hidden" name="teamId" value={teamId} />
+              <input type="hidden" name="userId" value={user} />
+
+              <button className="bg-red-500 px-5 py-1 rounded-lg" type="submit">
+                Leave Team
+              </button>
+            </form>
+          </div>
+        )}
 
         {actionData?.error && (
           <div className="mb-4 p-4 bg-red-900/50 border border-red-700 rounded-xl text-red-200 text-sm">
@@ -39,42 +67,88 @@ export default function TeamEditModal({ teamId, name, isAdmin, userIsAdmin }: Te
           </div>
         )}
 
-        <form method="post" action={`/dashboard/${teamId}/team/edit`} className="space-y-5">
+        {teamAccessCode && (
+          <>
+            <span className="block text-gray-300 text-sm font-medium mb-2">
+              Access Code:
+            </span>
+            <div className="flex items-center gap-3 mb-6 px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-xl">
+              <span className="text-white text-lg font-mono tracking-wider ">
+                {teamAccessCode}
+              </span>
+            </div>
+          </>
+        )}
+
+        <form
+          method="post"
+          action={`/dashboard/${teamId}/team/edit`}
+          className="space-y-5"
+        >
           <input type="hidden" name="teamId" value={teamId} />
           <input type="hidden" name="intent" value="update" />
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Team Name</label>
+            <label
+              htmlFor="teamName"
+              className="block text-gray-300 text-sm font-medium mb-2"
+            >
+              Team Name
+            </label>
             <input
               type="text"
+              id="teamName"
               name="name"
               maxLength={100}
               value={form.name}
               placeholder="Enter team name"
               onChange={(e) => updateForm("name", e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 rounded-xl bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
 
-          {/* Only show the admin-only checkbox if user is admin */}
-          {userIsAdmin && (
-            <div className="flex items-center justify-between gap-3">
-              <label htmlFor="isAdmin" className="text-gray-300 text-sm font-medium cursor-pointer select-none">
-                Administrator Only Team
-              </label>
-              <input
-                type="checkbox"
-                id="isAdmin"
-                name="isAdmin"
-                checked={form.isAdmin}
-                onChange={(e) => updateForm("isAdmin", e.target.checked)}
-                className="w-5 h-5 rounded-md border-gray-600 bg-gray-800 checked:bg-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-            </div>
-          )}
+          <div className="space-y-3">
+            {userIsAdmin && (
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="isAdmin"
+                  className="text-gray-300 text-sm font-medium cursor-pointer select-none"
+                >
+                  Administrator Team
+                </label>
+                <input
+                  type="checkbox"
+                  id="isAdmin"
+                  name="isAdmin"
+                  checked={form.isAdmin}
+                  onChange={(e) => updateForm("isAdmin", e.target.checked)}
+                  className="w-5 h-5 rounded-md border-gray-600 bg-gray-800 checked:bg-blue-600 focus:ring-blue-500 cursor-pointer"
+                />
+              </div>
+            )}
 
-          <div className="flex gap-3 pt-4">
+            {(owner === user || userIsAdmin) && (
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="privateTeam"
+                  className="text-gray-300 text-sm font-medium cursor-pointer select-none"
+                >
+                  Private Team
+                </label>
+                <input
+                  type="checkbox"
+                  id="privateTeam"
+                  name="privateTeam"
+                  checked={form.privateTeam}
+                  onChange={(e) => updateForm("privateTeam", e.target.checked)}
+                  className="w-5 h-5 rounded-md border-gray-600 bg-gray-800 checked:bg-blue-600 focus:ring-blue-500 cursor-pointer"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3 pt-2">
             <Link
               to="/dashboard"
               className="flex-1 px-5 py-3 text-center bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-medium transition-all"
@@ -90,16 +164,24 @@ export default function TeamEditModal({ teamId, name, isAdmin, userIsAdmin }: Te
           </div>
         </form>
 
-        {/* Only show delete section if user is admin */}
-        {userIsAdmin && (
-          <form method="post" action={`/dashboard/${teamId}/team/edit`} className="mt-8 border-t border-gray-700 pt-6 space-y-4">
+        {(owner === user || userIsAdmin) && (
+          <form
+            method="post"
+            action={`/dashboard/${teamId}/team/edit`}
+            className="mt-8 border-t border-gray-700 pt-6 space-y-4"
+          >
             <input type="hidden" name="teamId" value={teamId} />
             <input type="hidden" name="intent" value="delete" />
 
-            <h4 className="text-red-400 font-semibold text-lg">Delete Team</h4>
-            <p className="text-gray-400 text-sm">
-              This action cannot be undone. Please confirm before deleting the team.
-            </p>
+            <div>
+              <h3 className="text-red-400 font-semibold text-lg mb-2">
+                Delete Team
+              </h3>
+              <p className="text-gray-400 text-sm">
+                This action cannot be undone. Please confirm before deleting the
+                team.
+              </p>
+            </div>
 
             <div className="flex items-center gap-3">
               <input
@@ -109,7 +191,10 @@ export default function TeamEditModal({ teamId, name, isAdmin, userIsAdmin }: Te
                 onChange={(e) => setConfirmDelete(e.target.checked)}
                 className="w-5 h-5 rounded-md border-gray-600 bg-gray-800 checked:bg-red-600 focus:ring-red-500 cursor-pointer"
               />
-              <label htmlFor="confirmDelete" className="text-gray-300 text-sm font-medium cursor-pointer select-none">
+              <label
+                htmlFor="confirmDelete"
+                className="text-gray-300 text-sm font-medium cursor-pointer select-none"
+              >
                 I understand, delete this team permanently
               </label>
             </div>

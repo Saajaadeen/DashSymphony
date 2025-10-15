@@ -6,11 +6,15 @@ interface TeamCreateModalProps {
   userId: string;
 }
 
-export default function TeamCreateModal({ isAdmin = false, userId }: TeamCreateModalProps) {
+export default function TeamCreateModal({
+  isAdmin = false,
+  userId,
+}: TeamCreateModalProps) {
   const actionData = useActionData<{ error?: string }>();
   const [form, setForm] = useState({
     name: "",
-    isAdminTeam: false,
+    isAdmin: false,
+    privateTeam: false,
   });
 
   const updateForm = (key: keyof typeof form, value: any) =>
@@ -34,10 +38,8 @@ export default function TeamCreateModal({ isAdmin = false, userId }: TeamCreateM
           </div>
         )}
 
-        <form 
-          method="post" action="/dashboard/team/create"
-          className="space-y-5">
-
+        <form method="post" action="/dashboard/team/create" className="space-y-5">
+          <input type="hidden" value={userId.id} name="userId"/>
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Team Name
@@ -54,20 +56,37 @@ export default function TeamCreateModal({ isAdmin = false, userId }: TeamCreateM
             />
           </div>
 
-          {userId.isAdmin && (
-            <div className="flex  justify-between items-center gap-3">
-              <label htmlFor="isAdminTeam">Administrative Team Only</label>
-              <input
-                id="isAdminTeam"
-                type="checkbox"
-                name="isAdmin"
-                checked={form.isAdminTeam}
-                onChange={(e) => updateForm("isAdminTeam", e.target.checked)}
-                className="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-800/50"
-                disabled={isAdmin}
-              />
+            <div className="flex items-center  gap-5">
+              {userId?.isAdmin && (
+                <div className="flex items-center gap-2">
+                <input
+                  id="isAdmin"
+                  type="checkbox"
+                  name="isAdmin"
+                  checked={form.isAdmin}
+                  onChange={(e) => updateForm("isAdmin", e.target.checked)}
+                  className="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-800/50"
+                />
+                <label htmlFor="isAdmin" className="cursor-pointer">
+                  Administrative Team
+                </label>
+              </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <input
+                  id="privateTeam"
+                  type="checkbox"
+                  name="privateTeam"
+                  checked={form.privateTeam}
+                  onChange={(e) => updateForm("privateTeam", e.target.checked)}
+                  className="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-800/50"
+                />
+                <label htmlFor="privateTeam" className="cursor-pointer">
+                  Private Team
+                </label>
+              </div>
             </div>
-          )}
 
           <div className="flex gap-3 pt-4">
             <Link

@@ -25,6 +25,18 @@ type Team = {
   isAdmin: boolean;
 };
 
+type PrivateTeamAccess = {
+  id: string;
+  team: Team;
+  createdAt: Date;
+};
+
+type TeamsData = {
+  publicTeams?: Team[];
+  privateTeams?: PrivateTeamAccess[];
+  teamOwner?: Team[];
+} | Team[];
+
 export default function DashboardSidebarForm({
   user,
   privateBoard = [],
@@ -34,7 +46,7 @@ export default function DashboardSidebarForm({
   teamsBoard = [],
 }: {
   user?: User;
-  teamsBoard?: Team[];
+  teamsBoard?: TeamsData;
   privateBoard?: Dashboard[];
   publicBoard?: Dashboard[];
   globalBoard?: Dashboard[];
@@ -62,7 +74,20 @@ export default function DashboardSidebarForm({
     if (groupedDashboards[vis]) groupedDashboards[vis].push(d);
   });
 
-  const filteredTeams = (teamsBoard || []).filter((team) => {
+  const flatTeams = Array.isArray(teamsBoard)
+  ? teamsBoard
+  : [
+      ...(teamsBoard?.publicTeams || []),
+      ...(teamsBoard?.privateTeams?.map(pt => ("team" in pt ? pt.team : pt)) || []),
+      ...(teamsBoard?.teamOwner || [])
+    ];
+
+
+  const uniqueTeams = flatTeams.filter((team, index, self) =>
+    index === self.findIndex(t => t.id === team.id)
+  );
+
+  const filteredTeams = uniqueTeams.filter((team) => {
     if (team.isAdmin) return user?.isAdmin;
     return true;
   });
@@ -79,10 +104,6 @@ export default function DashboardSidebarForm({
 
   const handleDashboardClick = (dashboardId: string) => {
     setSearchParams({ panel: dashboardId });
-  };
-
-  const handleTeamClick = (teamId: string) => {
-    setSearchParams({ team: teamId });
   };
 
   const getVisibilityIcon = (visibility: string) => {
@@ -167,8 +188,7 @@ export default function DashboardSidebarForm({
               key={team.id}
               className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2"
             >
-              <button
-                onClick={() => handleTeamClick(team.id)}
+              <button type="button"
                 className="flex flex-1 items-center gap-2 text-left"
               >
                 <span className="truncate text-sm font-medium text-white">

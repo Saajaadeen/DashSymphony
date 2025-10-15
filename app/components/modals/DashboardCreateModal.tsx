@@ -4,9 +4,16 @@ import { Form, Link, useActionData } from "react-router";
 type Visibility = "GLOBAL" | "PRIVATE" | "PUBLIC" | "LANDING";
 type Permission = "READ" | "WRITE" | "DELETE";
 
+interface Team {
+  id: string;
+  name: string;
+  isAdmin: boolean;
+}
+
 interface DashboardCreateModalProps {
   isAdmin?: boolean;
   userId: string;
+  teams?: Team[] | { publicTeams?: Team[]; teamOwner?: Team[] };
 }
 
 const VISIBILITY_CONFIG = {
@@ -45,9 +52,20 @@ const PERMISSION_CONFIG = {
 export default function DashboardCreateModal({
   isAdmin = false,
   userId,
-  teams = [],
-}: DashboardCreateModalProps & { teams?: { id: string; name: string; isAdmin: boolean }[] }) {
+  teams,
+}: DashboardCreateModalProps) {
   const actionData = useActionData<{ error?: string }>();
+
+  // Flatten teams safely
+  const flatTeams: Team[] = Array.isArray(teams)
+    ? teams
+    : [
+        ...(teams?.publicTeams || []),
+        ...(teams?.teamOwner || []),
+      ];
+
+  const filteredTeams = isAdmin ? flatTeams : flatTeams.filter((t) => !t.isAdmin);
+  const hasTeams = filteredTeams.length > 0;
 
   const availableVisibilities: Visibility[] = isAdmin
     ? ["GLOBAL", "PRIVATE", "PUBLIC", "LANDING"]
@@ -70,7 +88,7 @@ export default function DashboardCreateModal({
 
   const handleVisibilityChange = (vis: Visibility) => {
     if ((vis === "GLOBAL" || vis === "LANDING") && !isAdmin) return;
-    
+
     setForm((prev) => ({
       ...prev,
       visibility: vis,
@@ -103,16 +121,15 @@ export default function DashboardCreateModal({
   const getPermissionStyle = (perm: Permission) => {
     const { isActive, isLocked, isDisabled } = getPermissionState(perm);
 
-    if (isDisabled) return "bg-gray-900/40 text-gray-600 border border-gray-700 cursor-not-allowed";
-    if (isLocked) return "bg-blue-700/80 text-blue-200 border border-blue-600 cursor-not-allowed";
+    if (isDisabled)
+      return "bg-gray-900/40 text-gray-600 border border-gray-700 cursor-not-allowed";
+    if (isLocked)
+      return "bg-blue-700/80 text-blue-200 border border-blue-600 cursor-not-allowed";
     if (isActive) return "bg-blue-600 text-white hover:bg-blue-500";
     return "bg-gray-800/60 text-gray-400 hover:bg-gray-700";
   };
 
   const shouldIncludeUserId = form.visibility === "PRIVATE";
-
-  const filteredTeams = isAdmin ? teams : teams.filter((t) => !t.isAdmin);
-  const hasTeams = filteredTeams.length > 0;
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -132,16 +149,30 @@ export default function DashboardCreateModal({
           </div>
         )}
 
-        <Form method="post" action="/dashboard/create" className="space-y-5">
-          <input type="hidden" name="visibility" value={JSON.stringify([form.visibility])} />
-          <input type="hidden" name="permissions" value={form.permissions.join(",")} />
+        <form method="post" action="/dashboard/create" className="space-y-5">
+          <input
+            type="hidden"
+            name="visibility"
+            value={JSON.stringify([form.visibility])}
+          />
+          <input
+            type="hidden"
+            name="permissions"
+            value={form.permissions.join(",")}
+          />
           <input type="hidden" name="userId" value={userId} />
           <input type="hidden" name="createdById" value={userId} />
-          <input type="hidden" name="connectUser" value={shouldIncludeUserId ? "true" : "false"} />
+          <input
+            type="hidden"
+            name="connectUser"
+            value={shouldIncludeUserId ? "true" : "false"}
+          />
           <input type="hidden" name="teamId" value={form.teamId} />
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Name</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+              Name
+            </label>
             <input
               type="text"
               name="name"
@@ -154,7 +185,9 @@ export default function DashboardCreateModal({
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Description</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+              Description
+            </label>
             <textarea
               name="description"
               value={form.description}
@@ -165,7 +198,9 @@ export default function DashboardCreateModal({
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Team</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+              Team
+            </label>
             {hasTeams ? (
               <select
                 name="team"
@@ -181,12 +216,16 @@ export default function DashboardCreateModal({
                 ))}
               </select>
             ) : (
-              <p className="text-gray-400 text-sm">No teams available. Create a team to select one.</p>
+              <p className="text-gray-400 text-sm">
+                No teams available. Create a team to select one.
+              </p>
             )}
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Visibility</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+              Visibility
+            </label>
             <div
               className={`grid gap-2 ${
                 availableVisibilities.length === 4 ? "grid-cols-4" : "grid-cols-2"
@@ -211,7 +250,9 @@ export default function DashboardCreateModal({
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Permissions</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+              Permissions
+            </label>
             <div className="grid grid-cols-3 gap-2">
               {allPermissions.map((perm) => (
                 <button
@@ -244,7 +285,7 @@ export default function DashboardCreateModal({
               Create Dashboard
             </button>
           </div>
-        </Form>
+        </form>
       </div>
     </div>
   );

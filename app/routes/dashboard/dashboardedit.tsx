@@ -13,6 +13,7 @@ import {
   getPublicDashboards,
   getGlobalDashboards,
   getLandingDashboards,
+  getTeam,
 } from "server/dashboard.queries.server";
 import { getUserId, requireUserId } from "server/session.server";
 import DashboardEditModal from "~/components/modals/DashboardEditModal";
@@ -38,7 +39,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     ...landingDashboards,
   ];
 
-  return { user, allDashboards };
+  const teams = await getTeam();
+
+  return { user, teams, allDashboards };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -54,6 +57,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const permissionsRaw = formData.get("permissions") as string;
     const permissions = permissionsRaw.split(",");
     const userId = formData.get("userId") as string | null;
+    const teamId = formData.get("teamId") as string;
 
     await updateDashboard(
       dashboardId,
@@ -61,7 +65,8 @@ export async function action({ request }: ActionFunctionArgs) {
       permissions,
       name,
       description,
-      userId
+      userId,
+      teamId
     );
   } else if (intent === "delete") {
     await deleteDashboard(dashboardId);
@@ -71,7 +76,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function DashboardEdit() {
-  const { user, allDashboards } = useLoaderData<typeof loader>();
+  const { user, teams, allDashboards } = useLoaderData<typeof loader>();
   const { id } = useParams();
 
   const selectedDashboard = allDashboards.find((d) => d.id === id);
@@ -82,6 +87,7 @@ export default function DashboardEdit() {
       userId={user?.id}
       dashboard={selectedDashboard}
       dashboardId={id}
+      teams={teams}
     />
   );
 }
