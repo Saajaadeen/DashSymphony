@@ -13,7 +13,7 @@ import {
   getPublicDashboards,
   getGlobalDashboards,
   getLandingDashboards,
-  getTeam,
+  getTeams,
 } from "server/dashboard.queries.server";
 import { getUserId, requireUserId } from "server/session.server";
 import DashboardEditModal from "~/components/modals/DashboardEditModal";
@@ -39,7 +39,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     ...landingDashboards,
   ];
 
-  const teams = await getTeam();
+  const teams = await getTeams(userId);
 
   return { user, teams, allDashboards };
 }
@@ -80,6 +80,8 @@ export default function DashboardEdit() {
   const { id } = useParams();
 
   const selectedDashboard = allDashboards.find((d) => d.id === id);
+
+  console.log('Teams: ', teams)
 
   return (
     <DashboardEditModal

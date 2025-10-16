@@ -37,6 +37,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     ...landingDashboards,
   ];
 
+  console.log(allDashboards)
+
   const url = new URL(request.url);
   const panelId = url.searchParams.get("panel");
 

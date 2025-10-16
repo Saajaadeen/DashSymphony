@@ -56,20 +56,19 @@ export default function DashboardCreateModal({
 }: DashboardCreateModalProps) {
   const actionData = useActionData<{ error?: string }>();
 
-  // Flatten teams safely
-  const flatTeams: Team[] = Array.isArray(teams)
+  const allTeams: Team[] = Array.isArray(teams)
     ? teams
-    : [
-        ...(teams?.publicTeams || []),
-        ...(teams?.teamOwner || []),
-      ];
+    : [...(teams?.publicTeams ?? []), ...(teams?.teamOwner ?? [])];
 
-  const filteredTeams = isAdmin ? flatTeams : flatTeams.filter((t) => !t.isAdmin);
+  const uniqueTeams = Array.from(
+    new Map(allTeams.map((t) => [t.id, t])).values()
+  );
+
+  const filteredTeams = isAdmin
+    ? uniqueTeams
+    : uniqueTeams.filter((t) => !t.isAdmin);
+
   const hasTeams = filteredTeams.length > 0;
-
-  const availableVisibilities: Visibility[] = isAdmin
-    ? ["GLOBAL", "PRIVATE", "PUBLIC", "LANDING"]
-    : ["PRIVATE", "PUBLIC"];
 
   const allPermissions: Permission[] = ["READ", "WRITE", "DELETE"];
 
@@ -78,17 +77,43 @@ export default function DashboardCreateModal({
     description: "",
     visibility: "PRIVATE" as Visibility,
     permissions: ["READ", "WRITE", "DELETE"] as Permission[],
-    teamId: "", // selected team
+    teamId: "",
   });
 
+  const getAvailableVisibilities = (): Visibility[] => {
+    if (form.teamId) {
+      return ["PUBLIC"];
+    }
+    return isAdmin
+      ? ["GLOBAL", "PRIVATE", "PUBLIC", "LANDING"]
+      : ["PRIVATE", "PUBLIC"];
+  };
+
+  const availableVisibilities = getAvailableVisibilities();
+
   const currentConfig = VISIBILITY_CONFIG[form.visibility];
+  const shouldIncludeUserId = form.visibility === "PRIVATE";
 
   const updateForm = (key: keyof typeof form, value: any) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  const handleTeamChange = (teamId: string) => {
+    setForm((prev) => ({
+      ...prev,
+      teamId,
+      // If team is selected, force PUBLIC visibility
+      visibility: teamId ? "PUBLIC" : prev.visibility,
+      // Reset permissions to PUBLIC defaults when team is selected
+      permissions: teamId
+        ? [...VISIBILITY_CONFIG.PUBLIC.lockedPermissions]
+        : prev.permissions,
+    }));
+  };
+
   const handleVisibilityChange = (vis: Visibility) => {
     if ((vis === "GLOBAL" || vis === "LANDING") && !isAdmin) return;
-
+    // Prevent changing visibility if team is selected (should stay PUBLIC)
+    if (form.teamId && vis !== "PUBLIC") return;
     setForm((prev) => ({
       ...prev,
       visibility: vis,
@@ -101,15 +126,17 @@ export default function DashboardCreateModal({
     const isActive = form.permissions.includes(perm);
     const isLocked = lockedPermissions.includes(perm);
     const isDisabled = disabledPermissions.includes(perm);
-    const isToggleable = !isLocked && !isDisabled;
-
-    return { isActive, isLocked, isDisabled, isToggleable };
+    return {
+      isActive,
+      isLocked,
+      isDisabled,
+      isToggleable: !isLocked && !isDisabled,
+    };
   };
 
   const togglePermission = (perm: Permission) => {
     const { isToggleable, isActive } = getPermissionState(perm);
     if (!isToggleable) return;
-
     updateForm(
       "permissions",
       isActive
@@ -120,7 +147,6 @@ export default function DashboardCreateModal({
 
   const getPermissionStyle = (perm: Permission) => {
     const { isActive, isLocked, isDisabled } = getPermissionState(perm);
-
     if (isDisabled)
       return "bg-gray-900/40 text-gray-600 border border-gray-700 cursor-not-allowed";
     if (isLocked)
@@ -128,8 +154,6 @@ export default function DashboardCreateModal({
     if (isActive) return "bg-blue-600 text-white hover:bg-blue-500";
     return "bg-gray-800/60 text-gray-400 hover:bg-gray-700";
   };
-
-  const shouldIncludeUserId = form.visibility === "PRIVATE";
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -149,12 +173,8 @@ export default function DashboardCreateModal({
           </div>
         )}
 
-        <form method="post" action="/dashboard/create" className="space-y-5">
-          <input
-            type="hidden"
-            name="visibility"
-            value={JSON.stringify([form.visibility])}
-          />
+        <Form method="post" action="/dashboard/create" className="space-y-5">
+          <input type="hidden" name="visibility" value={form.visibility} />
           <input
             type="hidden"
             name="permissions"
@@ -167,7 +187,9 @@ export default function DashboardCreateModal({
             name="connectUser"
             value={shouldIncludeUserId ? "true" : "false"}
           />
-          <input type="hidden" name="teamId" value={form.teamId} />
+          {form.teamId && (
+            <input type="hidden" name="teamId" value={form.teamId} />
+          )}
 
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
@@ -199,13 +221,13 @@ export default function DashboardCreateModal({
 
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
-              Team
+              Team (Optional)
             </label>
             {hasTeams ? (
               <select
                 name="team"
                 value={form.teamId}
-                onChange={(e) => updateForm("teamId", e.target.value)}
+                onChange={(e) => handleTeamChange(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select a team</option>
@@ -220,6 +242,11 @@ export default function DashboardCreateModal({
                 No teams available. Create a team to select one.
               </p>
             )}
+            {form.teamId && (
+              <p className="text-blue-400 text-xs mt-2">
+                Team dashboards are automatically set to PUBLIC visibility
+              </p>
+            )}
           </div>
 
           <div>
@@ -228,7 +255,11 @@ export default function DashboardCreateModal({
             </label>
             <div
               className={`grid gap-2 ${
-                availableVisibilities.length === 4 ? "grid-cols-4" : "grid-cols-2"
+                availableVisibilities.length === 4
+                  ? "grid-cols-4"
+                  : availableVisibilities.length === 1
+                  ? "grid-cols-1"
+                  : "grid-cols-2"
               }`}
             >
               {availableVisibilities.map((vis) => (
@@ -237,9 +268,12 @@ export default function DashboardCreateModal({
                   type="button"
                   onClick={() => handleVisibilityChange(vis)}
                   title={VISIBILITY_CONFIG[vis].tooltip}
+                  disabled={form.teamId && vis !== "PUBLIC"}
                   className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     form.visibility === vis
                       ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                      : form.teamId && vis !== "PUBLIC"
+                      ? "bg-gray-900/40 text-gray-600 border border-gray-700 cursor-not-allowed"
                       : "bg-gray-800/50 text-gray-400 hover:bg-gray-700 border border-gray-700"
                   }`}
                 >
@@ -280,12 +314,11 @@ export default function DashboardCreateModal({
             <button
               type="submit"
               className="flex-1 px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-xl text-white font-medium shadow-lg shadow-blue-500/30 transition-all"
-              disabled={!hasTeams}
             >
               Create Dashboard
             </button>
           </div>
-        </form>
+        </Form>
       </div>
     </div>
   );

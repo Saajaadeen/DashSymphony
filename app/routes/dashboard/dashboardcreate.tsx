@@ -25,7 +25,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const userId = formData.get("userId") as string;
   const connectUser = formData.get("connectUser") === "true";
   const visibilityRaw = formData.get("visibility") as string;
-  const visibility = JSON.parse(visibilityRaw) as string[];
+  const visibility = [visibilityRaw];
   const permissionsRaw = formData.get("permissions") as string;
   const permissions = permissionsRaw.split(",");
   const name = formData.get("name") as string;
@@ -42,7 +42,7 @@ export async function action({ request }: ActionFunctionArgs) {
       description, 
       connectUser, 
       createdById,
-      teamId
+      teamId,
     );
     return redirect("/dashboard");
   } catch (error) {

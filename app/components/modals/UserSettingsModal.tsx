@@ -386,7 +386,7 @@ export default function UserSettingsModal({
                         }
                         onKeyDown={(e) => handleKeyDown(index, e)}
                         onPaste={index === 0 ? handlePaste : undefined}
-                        className="w-10 h-12 text-center text-xl font-mono bg-white/10 text-white rounded border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                        className="w-9.5 h-12 text-center text-xl font-mono bg-white/10 text-white rounded border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
                       />
                     ))}
                   </div>

@@ -13,9 +13,12 @@ type Dashboard = {
   visibility: string[];
   permissions: string[];
   createdAt: Date;
+  createdById?: string | null;
+  teamId?: string | null;
 };
 
 type User = {
+  id: string;
   isAdmin?: boolean;
 };
 
@@ -31,11 +34,13 @@ type PrivateTeamAccess = {
   createdAt: Date;
 };
 
-type TeamsData = {
-  publicTeams?: Team[];
-  privateTeams?: PrivateTeamAccess[];
-  teamOwner?: Team[];
-} | Team[];
+type TeamsData =
+  | {
+      publicTeams?: Team[];
+      privateTeams?: PrivateTeamAccess[];
+      teamOwner?: Team[];
+    }
+  | Team[];
 
 export default function DashboardSidebarForm({
   user,
@@ -44,6 +49,7 @@ export default function DashboardSidebarForm({
   globalBoard = [],
   landingBoard = [],
   teamsBoard = [],
+  teamDashboards = [],
 }: {
   user?: User;
   teamsBoard?: TeamsData;
@@ -51,17 +57,31 @@ export default function DashboardSidebarForm({
   publicBoard?: Dashboard[];
   globalBoard?: Dashboard[];
   landingBoard?: Dashboard[];
+  teamDashboards?: Dashboard[];
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const hasInitialized = useRef(false);
 
-  const sortedDashboards = [
+  // Combine all dashboards
+  const allDashboards = [
     ...privateBoard,
     ...publicBoard,
     ...globalBoard,
     ...landingBoard,
-  ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    ...teamDashboards,
+  ];
 
+  // Separate team dashboards from regular dashboards
+  const regularDashboards = allDashboards
+    .filter((d) => !d.teamId)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+  // Get all team dashboards
+  const teamDashboardsList = allDashboards
+    .filter((d) => d.teamId)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+  // Group regular dashboards by visibility
   const groupedDashboards: Record<string, Dashboard[]> = {
     PRIVATE: [],
     GLOBAL: [],
@@ -69,22 +89,25 @@ export default function DashboardSidebarForm({
     LANDING: [],
   };
 
-  sortedDashboards.forEach((d) => {
-    const vis = d.visibility[0] || "PUBLIC";
+  regularDashboards.forEach((d) => {
+    const vis = d.visibility?.[0] || "PUBLIC";
     if (groupedDashboards[vis]) groupedDashboards[vis].push(d);
   });
 
+  // Flatten and dedupe all teams
   const flatTeams = Array.isArray(teamsBoard)
-  ? teamsBoard
-  : [
-      ...(teamsBoard?.publicTeams || []),
-      ...(teamsBoard?.privateTeams?.map(pt => ("team" in pt ? pt.team : pt)) || []),
-      ...(teamsBoard?.teamOwner || [])
-    ];
+    ? teamsBoard
+    : [
+        ...(teamsBoard?.publicTeams || []),
+        ...(teamsBoard?.privateTeams?.map((pt) =>
+          "team" in pt ? pt.team : pt
+        ) || []),
+        ...(teamsBoard?.teamOwner || []),
+      ];
 
-
-  const uniqueTeams = flatTeams.filter((team, index, self) =>
-    index === self.findIndex(t => t.id === team.id)
+  const uniqueTeams = flatTeams.filter(
+    (team, index, self) =>
+      index === self.findIndex((t) => t.id === team.id)
   );
 
   const filteredTeams = uniqueTeams.filter((team) => {
@@ -92,15 +115,22 @@ export default function DashboardSidebarForm({
     return true;
   });
 
+  // Initial panel setup
   useEffect(() => {
-    if (!hasInitialized.current && sortedDashboards.length > 0) {
+    if (!hasInitialized.current && allDashboards.length > 0) {
       const currentPanel = searchParams.get("panel");
       if (!currentPanel) {
-        setSearchParams({ panel: sortedDashboards[0].id });
+        // Prioritize regular dashboards, then team dashboards
+        const firstDashboard = regularDashboards.length > 0 
+          ? regularDashboards[0] 
+          : teamDashboardsList[0];
+        if (firstDashboard) {
+          setSearchParams({ panel: firstDashboard.id });
+        }
       }
       hasInitialized.current = true;
     }
-  }, [sortedDashboards, searchParams, setSearchParams]);
+  }, [allDashboards, regularDashboards, teamDashboardsList, searchParams, setSearchParams]);
 
   const handleDashboardClick = (dashboardId: string) => {
     setSearchParams({ panel: dashboardId });
@@ -129,18 +159,18 @@ export default function DashboardSidebarForm({
   const canEdit = (dashboard: Dashboard) =>
     user?.isAdmin || dashboard.permissions.includes("WRITE");
 
-  const renderGroup = (title: string, dashboards: Dashboard[]) => (
-    <div key={title} className="mb-6">
-      <h3 className="text-white/60 font-medium text-xs uppercase tracking-wide mb-3">
-        {title}
-      </h3>
-      {dashboards.length === 0 ? (
-        <p className="text-white/30 text-xs italic pl-3">No dashboards</p>
-      ) : (
+  const renderGroup = (title: string, dashboards: Dashboard[]) => {
+    if (!dashboards || dashboards.length === 0) return null;
+
+    return (
+      <div key={title} className="mb-6">
+        <h3 className="text-white/60 font-medium text-xs uppercase tracking-wide mb-3">
+          {title}
+        </h3>
         <div className="space-y-1">
           {dashboards.map((d) => {
             if (!canView(d)) return null;
-            const visibility = d.visibility[0] || "PUBLIC";
+            const visibility = d.visibility?.[0] || "PUBLIC";
             return (
               <div
                 key={d.id}
@@ -171,13 +201,13 @@ export default function DashboardSidebarForm({
             );
           })}
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   const renderTeams = (teams: Team[]) => (
     <div className="mb-6">
-      {(!teams || teams.length === 0) ? (
+      {!teams || teams.length === 0 ? (
         <p className="text-white/30 text-xs italic pl-3">
           No teams available — create a team to select
         </p>
@@ -188,7 +218,8 @@ export default function DashboardSidebarForm({
               key={team.id}
               className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2"
             >
-              <button type="button"
+              <button
+                type="button"
                 className="flex flex-1 items-center gap-2 text-left"
               >
                 <span className="truncate text-sm font-medium text-white">
@@ -215,22 +246,27 @@ export default function DashboardSidebarForm({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-white">Dashboards</h2>
       </div>
+
       <Link
         to="/dashboard/create"
         className="mb-4 w-full bg-white/10 active:bg-white/20 text-white font-medium py-3 px-4 rounded-xl text-center transition-all duration-200 border border-white/10"
       >
         + New Dashboard
       </Link>
+
       <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-2">
         {renderGroup("Private", groupedDashboards.PRIVATE)}
         {renderGroup("Global", groupedDashboards.GLOBAL)}
         {renderGroup("Public", groupedDashboards.PUBLIC)}
         {user?.isAdmin && renderGroup("Landing", groupedDashboards.LANDING)}
+        {teamDashboardsList.length > 0 &&
+          renderGroup("Team Dashboards", teamDashboardsList)}
       </div>
 
       <div className="flex items-center justify-between mt-6 mb-4">
         <h2 className="text-xl font-semibold text-white">Teams</h2>
       </div>
+
       <Link
         to="/dashboard/team/create"
         className="mb-4 w-full bg-white/10 active:bg-white/20 text-white font-medium py-3 px-4 rounded-xl text-center transition-all duration-200 border border-white/10"

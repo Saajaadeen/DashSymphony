@@ -8,6 +8,7 @@ interface Team {
   id: string;
   name: string;
   isAdmin: boolean;
+  ownerId?: string;
 }
 
 interface DashboardEditModalProps {
@@ -15,7 +16,13 @@ interface DashboardEditModalProps {
   userId: string;
   dashboard: any;
   dashboardId?: string;
-  teams: Team[];
+  teams:
+    | Team[]
+    | {
+        publicTeams?: Team[];
+        privateTeams?: Team[];
+        teamOwner?: Team[];
+      };
 }
 
 const VISIBILITY_CONFIG = {
@@ -61,6 +68,20 @@ export default function DashboardEditModal({
   const actionData = useActionData<{ error?: string }>();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  // normalize all team structures
+  const safeTeams: Team[] = Array.isArray(teams)
+    ? teams
+    : [
+        ...(teams?.publicTeams ?? []),
+        ...(teams?.privateTeams ?? []),
+        ...(teams?.teamOwner ?? []),
+      ];
+
+  const filteredTeams = isAdmin
+    ? safeTeams
+    : safeTeams.filter((t) => !t.isAdmin);
+  const hasTeams = filteredTeams.length > 0;
+
   const availableVisibilities: Visibility[] = isAdmin
     ? ["GLOBAL", "PRIVATE", "PUBLIC", "LANDING"]
     : ["PRIVATE", "PUBLIC"];
@@ -81,9 +102,6 @@ export default function DashboardEditModal({
     permissions: originalPermissions.current,
     teamId: dashboard?.teamId ?? "",
   });
-
-  const hasTeams = Array.isArray(teams) && teams.length > 0;
-  const filteredTeams = isAdmin ? teams : teams.filter((t) => !t.isAdmin);
 
   const currentConfig = VISIBILITY_CONFIG[form.visibility];
 
@@ -160,15 +178,32 @@ export default function DashboardEditModal({
           </div>
         )}
 
-        <form method="post" action={`/dashboard/${dashboardId}/edit`} className="space-y-5">
+        <form
+          method="post"
+          action={`/dashboard/${dashboardId}/edit`}
+          className="space-y-5"
+        >
           <input type="hidden" name="intent" value="update" />
           <input type="hidden" name="dashboardId" value={dashboardId} />
-          <input type="hidden" name="visibility" value={JSON.stringify([form.visibility])} />
-          <input type="hidden" name="permissions" value={form.permissions.join(",")} />
-          {shouldIncludeUserId && <input type="hidden" name="userId" value={userId} />}
+          <input
+            type="hidden"
+            name="visibility"
+            value={JSON.stringify([form.visibility])}
+          />
+          <input
+            type="hidden"
+            name="permissions"
+            value={form.permissions.join(",")}
+          />
+          {shouldIncludeUserId && (
+            <input type="hidden" name="userId" value={userId} />
+          )}
 
+          {/* Name */}
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Name</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+              Name
+            </label>
             <input
               type="text"
               name="name"
@@ -180,8 +215,11 @@ export default function DashboardEditModal({
             />
           </div>
 
+          {/* Description */}
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Description</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+              Description
+            </label>
             <textarea
               name="description"
               value={form.description}
@@ -191,8 +229,11 @@ export default function DashboardEditModal({
             />
           </div>
 
+          {/* Team Selection */}
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Team</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+              Team
+            </label>
             {hasTeams ? (
               <select
                 name="teamId"
@@ -219,11 +260,16 @@ export default function DashboardEditModal({
             )}
           </div>
 
+          {/* Visibility */}
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Visibility</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+              Visibility
+            </label>
             <div
               className={`grid gap-2 ${
-                availableVisibilities.length === 4 ? "grid-cols-4" : "grid-cols-2"
+                availableVisibilities.length === 4
+                  ? "grid-cols-4"
+                  : "grid-cols-2"
               }`}
             >
               {availableVisibilities.map((vis) => (
@@ -244,8 +290,11 @@ export default function DashboardEditModal({
             </div>
           </div>
 
+          {/* Permissions */}
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Permissions</label>
+            <label className="block text-gray-300 text-sm font-medium mb-2">
+              Permissions
+            </label>
             <div className="grid grid-cols-3 gap-2">
               {allPermissions.map((perm) => (
                 <button
@@ -263,6 +312,7 @@ export default function DashboardEditModal({
             </div>
           </div>
 
+          {/* Actions */}
           <div className="flex gap-3 pt-4">
             <Link
               to="/dashboard"
@@ -279,6 +329,7 @@ export default function DashboardEditModal({
           </div>
         </form>
 
+        {/* Delete Form */}
         <form method="post" className="mt-6 space-y-3">
           <input type="hidden" name="intent" value="delete" />
           <input type="hidden" name="dashboardId" value={dashboardId} />
