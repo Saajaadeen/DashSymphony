@@ -77,13 +77,13 @@ export default function DashboardSidebarForm({
   const getVisibilityIcon = (visibility: string) => {
     switch (visibility) {
       case "PRIVATE":
-        return <LockIcon className="w-6 h-6" />;
+        return <LockIcon className="w-5 h-5 text-white/60" />;
       case "PUBLIC":
-        return <EyeOpenIcon className="w-6 h-6" />;
+        return <EyeOpenIcon className="w-5 h-5 text-white/60" />;
       case "GLOBAL":
-        return <GlobeIcon className="w-6 h-6" />;
+        return <GlobeIcon className="w-5 h-5 text-white/60" />;
       case "LANDING":
-        return <RocketIcon className="w-6 h-6" />;
+        return <RocketIcon className="w-5 h-5 text-white/60" />;
       default:
         return null;
     }
@@ -110,7 +110,7 @@ export default function DashboardSidebarForm({
                 className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2"
               >
                 <button onClick={() => handleDashboardClick(d.id)} className="flex flex-1 items-center gap-2 text-left">
-                  <span className="flex-shrink-0 text-white/60">{getVisibilityIcon(visibility)}</span>
+                  <span className="flex-shrink-0">{getVisibilityIcon(visibility)}</span>
                   <span className="truncate text-sm font-medium text-white">{d.name}</span>
                 </button>
                 {canEdit(d) && (
@@ -133,8 +133,14 @@ export default function DashboardSidebarForm({
     teams?.length ? (
       <div className="mb-6 space-y-1">
         {teams.map((team: any) => (
-          <div key={team.id} className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2">
+          <div
+            key={team.id}
+            className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2"
+          >
             <button type="button" className="flex flex-1 items-center gap-2 text-left">
+              <span className="flex-shrink-0">
+                {team.isPrivate ? <LockIcon className="w-5 h-5 text-white/60" /> : <EyeOpenIcon className="w-5 h-5 text-white/60" />}
+              </span>
               <span className="truncate text-sm font-medium text-white">{team.name}</span>
             </button>
             <Link
@@ -154,8 +160,12 @@ export default function DashboardSidebarForm({
         <div className="mb-4">
           <h4 className="text-white/60 font-medium text-xs uppercase tracking-wide mb-2">Private Groups</h4>
           {privateGroups.map((group: any) => (
-            <div key={group.id} className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2 mb-1">
+            <div
+              key={group.id}
+              className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2 mb-1"
+            >
               <button type="button" className="flex flex-1 items-center gap-2 text-left">
+                <span className="flex-shrink-0"><LockIcon className="w-5 h-5 text-white/60" /></span>
                 <span className="truncate text-sm font-medium text-white">{group.name}</span>
               </button>
               <Link
@@ -172,8 +182,12 @@ export default function DashboardSidebarForm({
         <div className="mb-4">
           <h4 className="text-white/60 font-medium text-xs uppercase tracking-wide mb-2">Public Groups</h4>
           {publicGroups.map((group: any) => (
-            <div key={group.id} className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2 mb-1">
+            <div
+              key={group.id}
+              className="group flex items-center justify-between bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors p-2 mb-1"
+            >
               <button type="button" className="flex flex-1 items-center gap-2 text-left">
+                <span className="flex-shrink-0"><EyeOpenIcon className="w-5 h-5 text-white/60" /></span>
                 <span className="truncate text-sm font-medium text-white">{group.name}</span>
               </button>
               <Link

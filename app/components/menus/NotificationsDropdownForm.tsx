@@ -43,7 +43,7 @@ export default function NotificationsDropdownForm({
       minute: "2-digit",
     });
   };
-  
+
   const processed = items.map((n) => ({
     ...n,
     read: n.readById?.includes(user.id),
@@ -55,7 +55,6 @@ export default function NotificationsDropdownForm({
 
   return (
     <div className="relative inline-block" ref={ref}>
-      {/* Trigger */}
       <div onClick={() => setOpen((o) => !o)}>
         {trigger ?? (
           <button
@@ -70,7 +69,6 @@ export default function NotificationsDropdownForm({
         )}
       </div>
 
-      {/* Dropdown */}
       {open && (
         <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-xl z-50 overflow-hidden">
           {/* Header */}
@@ -88,7 +86,6 @@ export default function NotificationsDropdownForm({
             </label>
           </div>
 
-          {/* Notifications */}
           {filteredItems.length === 0 ? (
             <div className="p-4 text-center text-white text-sm">
               No {showRead ? "notifications" : "new notifications"}

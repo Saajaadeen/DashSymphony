@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useActionData } from "react-router";
 
-export default function GroupEditModal({ group }: any) {
+export default function GroupEditModal({ group, user }: any) {
   const actionData = useActionData();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(!!group.userId);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -61,6 +62,22 @@ export default function GroupEditModal({ group }: any) {
               className="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
+          <div className="flex mt-4">
+            <input
+              type="checkbox"
+              id="private"
+              name="private"
+              checked={isPrivate}
+              onChange={(e) => setIsPrivate(e.target.checked)}
+              className="w-5 h-5"
+            />
+            <label className="ml-2 text-gray-300 text-sm" htmlFor="private">
+              Private Group (Only Seen by <strong>{user.firstName}</strong>)
+            </label>
+          </div>
+
+          {isPrivate && <input type="hidden" name="userId" value={user.id} />}
 
           <div className="flex gap-3 pt-4">
             <Link

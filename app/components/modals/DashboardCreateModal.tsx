@@ -101,9 +101,7 @@ export default function DashboardCreateModal({
     setForm((prev) => ({
       ...prev,
       teamId,
-      // If team is selected, force PUBLIC visibility
       visibility: teamId ? "PUBLIC" : prev.visibility,
-      // Reset permissions to PUBLIC defaults when team is selected
       permissions: teamId
         ? [...VISIBILITY_CONFIG.PUBLIC.lockedPermissions]
         : prev.permissions,
@@ -112,7 +110,6 @@ export default function DashboardCreateModal({
 
   const handleVisibilityChange = (vis: Visibility) => {
     if ((vis === "GLOBAL" || vis === "LANDING") && !isAdmin) return;
-    // Prevent changing visibility if team is selected (should stay PUBLIC)
     if (form.teamId && vis !== "PUBLIC") return;
     setForm((prev) => ({
       ...prev,

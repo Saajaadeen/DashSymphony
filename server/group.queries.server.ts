@@ -43,17 +43,19 @@ export async function getGroupById(groupId: string) {
     select: {
       id: true,
       name: true,
+      userId: true,
     },
   });
 
   return group;
 }
 
-export async function updateGroup(name: string, id: string) {
+export async function updateGroup(name: string, id: string, userId: string) {
   const group = await prisma.groups.update({
     where: { id },
     data: {
       name,
+      userId,
     },
   });
 

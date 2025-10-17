@@ -52,7 +52,7 @@ export default function GroupCreateModal({ userId }: { userId: string }) {
             </div>
           </div>
 
-          {isPrivate && <input type="hidden" name="userId" value={userId} />}
+          {isPrivate && <input type="hidden" name="userId" value= {userId} />}
 
           <div className="flex gap-3">
             <Link

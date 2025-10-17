@@ -199,7 +199,6 @@ export default function DashboardEditModal({
             <input type="hidden" name="userId" value={userId} />
           )}
 
-          {/* Name */}
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Name
@@ -215,7 +214,6 @@ export default function DashboardEditModal({
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Description
@@ -229,7 +227,6 @@ export default function DashboardEditModal({
             />
           </div>
 
-          {/* Team Selection */}
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Team
@@ -260,7 +257,6 @@ export default function DashboardEditModal({
             )}
           </div>
 
-          {/* Visibility */}
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Visibility
@@ -290,7 +286,6 @@ export default function DashboardEditModal({
             </div>
           </div>
 
-          {/* Permissions */}
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Permissions
@@ -312,7 +307,6 @@ export default function DashboardEditModal({
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3 pt-4">
             <Link
               to="/dashboard"
@@ -329,7 +323,6 @@ export default function DashboardEditModal({
           </div>
         </form>
 
-        {/* Delete Form */}
         <form method="post" className="mt-6 space-y-3">
           <input type="hidden" name="intent" value="delete" />
           <input type="hidden" name="dashboardId" value={dashboardId} />
