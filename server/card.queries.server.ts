@@ -85,7 +85,7 @@ export async function updateCard(
       select: { position: true, dashboardId: true },
     });
 
-    if (!currentCard) throw new Error("Card not found");
+    if (!currentCard) return { error: "Card not found"};
 
     const oldPosition = currentCard.position;
     const dashboardId = currentCard.dashboardId;

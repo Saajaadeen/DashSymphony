@@ -1,6 +1,7 @@
 import { redirect, useLoaderData, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
-import { createTeam, getUserDetails } from "server/dashboard.queries.server";
+import { getUserDetails } from "server/dashboard.queries.server";
 import { requireUserId, getUserId } from "server/session.server";
+import { createTeam } from "server/team.queries.server";
 import TeamCreateModal from "~/components/modals/TeamCreateModal";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -23,6 +24,5 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function TeamCreate() {
     const { user } = useLoaderData<typeof loader>();
-
     return (<TeamCreateModal userId={user} />)
 }

@@ -1,8 +1,9 @@
 import TeamEditModal from "~/components/modals/TeamEditModal";
 
 import { redirect, useLoaderData, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
-import { deleteTeam, getTeamById, getUserDetails, leaveTeam, updateTeam } from "server/dashboard.queries.server";
+import { getUserDetails } from "server/dashboard.queries.server";
 import { requireUserId, getUserId } from "server/session.server";
+import { getTeamById, updateTeam, deleteTeam, leaveTeam } from "server/team.queries.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   await requireUserId(request);

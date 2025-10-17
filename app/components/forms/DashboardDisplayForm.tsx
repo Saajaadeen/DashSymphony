@@ -48,11 +48,25 @@ export default function DashboardDisplayForm({
     groupedCards[group].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
   }
 
-  const sizeClasses: Record<Card["size"], string> = {
-    SM: "w-32 h-32 sm:w-32 sm:h-32",
-    MD: "w-64 h-32 sm:w-64 sm:h-32",
-    LG: "w-64 h-64 sm:w-64 sm:h-64",
-    XL: "w-128 h-128 sm:w-128 sm:h-128",
+  const gridSpanClasses: Record<NonNullable<Card["size"]>, string> = {
+    SM: "",
+    MD: "",
+    LG: "",
+    XL: "",
+  };
+
+  const heightClasses: Record<NonNullable<Card["size"]>, string> = {
+    SM: "h-32",
+    MD: "h-48",
+    LG: "h-64",
+    XL: "h-128",
+  };
+
+  const widthClasses: Record<NonNullable<Card["size"]>, string> = {
+    SM: "w-32",
+    MD: "w-48",
+    LG: "w-64",
+    XL: "w-full",
   };
 
   return (
@@ -72,13 +86,13 @@ export default function DashboardDisplayForm({
               {groupCards.map((card) => (
                 <div
                   key={card.id}
-                  className={`relative group rounded-lg transition-all ${sizeClasses[card.size ?? "SM"]}`}
+                  className={`relative group rounded-lg transition-all ${gridSpanClasses[card.size ?? "SM"]} ${heightClasses[card.size ?? "SM"]} ${widthClasses[card.size ?? "SM"]}`}
                 >
                   <a
                     href={card.url ?? "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full h-full bg-white/10 rounded-lg shadow-md overflow-hidden transition"
+                    className="block w-full h-full bg-white/10 hover:bg-white/20 rounded-lg shadow-md hover:shadow-xl overflow-hidden transition-all"
                   >
                     {card.imageUrl ? (
                       <img
@@ -97,13 +111,13 @@ export default function DashboardDisplayForm({
 
                   <Link
                     to={`/dashboard/${selectedDashboard.id}/card/${card.id}/edit`}
-                    className="absolute top-2 right-2 text-white/70 p-1 rounded-full transition-colors text-lg"
+                    className="absolute top-2 right-2 text-white/70 hover:text-white bg-black/30 hover:bg-black/50 p-1.5 rounded-full transition-all text-lg opacity-0 group-hover:opacity-100"
                   >
                     ⋮
                   </Link>
 
-                  <div className="absolute bottom-1 left-1 right-1 bg-black/70 backdrop-blur-sm rounded px-1 py-0.5">
-                    <h3 className="text-xs font-semibold text-white text-center truncate">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent pt-8 pb-2 px-2 rounded-b-lg">
+                    <h3 className="text-sm font-semibold text-white truncate">
                       {card.name}
                     </h3>
                   </div>
@@ -114,10 +128,10 @@ export default function DashboardDisplayForm({
                 to={`/dashboard/${selectedDashboard.id}/card/create?group=${encodeURIComponent(
                   groupName
                 )}`}
-                className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-500 bg-white/5 rounded-lg text-white transition-all cursor-pointer p-2 ${sizeClasses.SM}`}
+                className="col-span-1 row-span-1 h-32 w-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-500/50 hover:border-gray-400 bg-white/5 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-all cursor-pointer"
               >
-                <span className="text-2xl transition-transform">+</span>
-                <span className="mt-1 text-xs font-medium">Add</span>
+                <span className="text-3xl mb-1">+</span>
+                <span className="text-xs font-medium">Add Card</span>
               </Link>
             </div>
           </div>
@@ -127,10 +141,10 @@ export default function DashboardDisplayForm({
           <div className="flex justify-start">
             <Link
               to={`/dashboard/${selectedDashboard.id}/card/create`}
-              className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-500 bg-white/5 rounded-lg text-white transition-all cursor-pointer p-2 ${sizeClasses.SM}`}
+              className="h-32 w-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-500/50 hover:border-gray-400 bg-white/5 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-all cursor-pointer"
             >
-              <span className="text-2xl transition-transform">+</span>
-              <span className="mt-1 text-xs font-medium">Add</span>
+              <span className="text-3xl mb-1">+</span>
+              <span className="text-xs font-medium">Add Card</span>
             </Link>
           </div>
         )}

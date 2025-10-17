@@ -6,10 +6,10 @@ import {
 } from "react-router";
 import {
   createDashboard,
-  getTeams,
   getUserDetails,
 } from "server/dashboard.queries.server";
 import { requireUserId, getUserId } from "server/session.server";
+import { getTeams } from "server/team.queries.server";
 import DashboardCreateModal from "~/components/modals/DashboardCreateModal";
 
 export async function loader({ request }: LoaderFunctionArgs) {

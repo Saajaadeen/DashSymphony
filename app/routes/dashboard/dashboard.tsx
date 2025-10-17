@@ -1,4 +1,4 @@
-import { useLoaderData, type LoaderFunctionArgs } from "react-router";
+import { useLoaderData, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
 import {
   getCards,
 } from "server/card.queries.server";
@@ -7,12 +7,12 @@ import {
   getPublicDashboards,
   getGlobalDashboards,
   getLandingDashboards,
-  getNotification,
   getUserDetails,
-  getTeams,
 } from "server/dashboard.queries.server";
 import { readPublicGroup, readPrivateGroup } from "server/group.queries.server";
+import { getNotification, readNotification } from "server/notifications.queries.server";
 import { getUserId, requireUserId } from "server/session.server";
+import { getTeams } from "server/team.queries.server";
 import DashboardForm from "~/components/forms/DashboardForm";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -68,6 +68,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
     publicGroups,
     privateGroups,
   };
+}
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+  const id = formData.get("id") as string;
+  const userId = formData.get("userId") as string;
+
+  if (intent === "read") {
+    await readNotification(id, userId)
+  }
 }
 
 export default function Dashboard() {

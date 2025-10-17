@@ -1,6 +1,6 @@
 import { redirect, useLoaderData, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
 import { authenticateAdmin } from "server/auth.queries.server";
-import { deleteNotification, getNotification, sendNotification } from "server/dashboard.queries.server";
+import { getNotification, sendNotification, deleteNotification } from "server/notifications.queries.server";
 import { requireUserId } from "server/session.server";
 import UserNotificationsModal from "~/components/modals/UserNotificationsModal";
 

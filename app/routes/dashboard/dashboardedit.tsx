@@ -13,9 +13,9 @@ import {
   getPublicDashboards,
   getGlobalDashboards,
   getLandingDashboards,
-  getTeams,
 } from "server/dashboard.queries.server";
 import { getUserId, requireUserId } from "server/session.server";
+import { getTeams } from "server/team.queries.server";
 import DashboardEditModal from "~/components/modals/DashboardEditModal";
 
 export async function loader({ request }: LoaderFunctionArgs) {

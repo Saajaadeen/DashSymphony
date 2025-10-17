@@ -1,6 +1,7 @@
 import { useLoaderData, type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
-import { getJoinableTeams, getUserDetails, updateUserInfo } from "server/dashboard.queries.server";
+import { getUserDetails, updateUserInfo } from "server/dashboard.queries.server";
 import { getUserId, requireUserId } from "server/session.server";
+import { getJoinableTeams } from "server/team.queries.server";
 import UserSettingsModal from "~/components/modals/UserSettingsModal";
 
 export async function loader({ request }: LoaderFunctionArgs) {

@@ -5,7 +5,7 @@ type Card = {
   name: string;
   url?: string;
   imageUrl?: string;
-  cardGroup?: string;
+  group?: { id: string; name: string };
   position?: number;
   size?: "SM" | "MD" | "LG" | "XL";
 };
@@ -24,9 +24,9 @@ export default function LandingPage({
   appInfo: AppInfo;
 }) {
   const groupedCards = cards.reduce<Record<string, Card[]>>((acc, card) => {
-    const group = card.cardGroup || "Ungrouped";
-    if (!acc[group]) acc[group] = [];
-    acc[group].push(card);
+    const groupName = card.group?.name || "Ungrouped";
+    if (!acc[groupName]) acc[groupName] = [];
+    acc[groupName].push(card);
     return acc;
   }, {});
 
@@ -61,7 +61,7 @@ export default function LandingPage({
         {Object.entries(groupedCards).length > 0 ? (
           Object.entries(groupedCards).map(([groupName, groupCards]) => (
             <div key={groupName} className="flex flex-col gap-4">
-              <h2 className="text-xl font-semibold text-white/80 mb-4">{groupName}</h2>
+              <h2 className="text-xl font-semibold text-white/80">{groupName}</h2>
               <div className="flex flex-wrap gap-4">
                 {groupCards.map((card) => (
                   <a
