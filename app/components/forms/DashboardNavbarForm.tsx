@@ -15,7 +15,6 @@ export default function DashboardNavbarForm({
   user: any;
   notifications: any;
 }) {
-  console.log(notifications);
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between px-8 py-4 bg-white/5 backdrop-blur-sm border rounded-2xl border-white/10 shadow-md">
       <div className="text-lg font-semibold text-white">

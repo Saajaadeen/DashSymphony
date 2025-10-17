@@ -19,8 +19,6 @@ export async function loader() {
     landingCards = await getCards(loginInfo.landingDashboardId);
   }
 
-  console.log(landingCards)
-
   return { loginInfo, landingCards };
 }
 
