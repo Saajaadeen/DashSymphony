@@ -2,13 +2,9 @@
 
 DashSymphony is a modern, feature-rich dashboard application built with **React Router**, **Prisma**, and **Tailwind CSS**. Organize and manage multiple dashboards with customizable cards for quick access to your favorite links and resources.
 
----
-
 ## Overview
 
 DashSymphony helps you centralize your online resources, creating personalized dashboards for easy access and organization.  It combines powerful features like multiple dashboard management, visual cards, and a modern UI, all while prioritizing security and user experience.
-
----
 
 ## Features
 
@@ -41,7 +37,6 @@ DashSymphony helps you centralize your online resources, creating personalized d
 *   **Protected Routes:**  Only authenticated users can access dashboards.
 *   **User-specific Content:**  Each user sees only their own dashboards, ensuring data privacy.
 
----
 
 ## Tech Stack
 
@@ -51,7 +46,6 @@ DashSymphony helps you centralize your online resources, creating personalized d
 *   **Tailwind CSS:** Utility-first styling framework.
 *   **PostgreSQL:**  Robust relational database (or your preferred DB).
 
----
 
 ## Getting Started
 
@@ -98,7 +92,6 @@ DashSymphony helps you centralize your online resources, creating personalized d
 
     Visit `http://localhost:3000` to see the app in action.
 
----
 
 ## Development
 
@@ -114,7 +107,6 @@ DashSymphony helps you centralize your online resources, creating personalized d
     npx prisma generate
     ```
 
----
 
 ## Contributing
 
@@ -133,13 +125,11 @@ DashSymphony helps you centralize your online resources, creating personalized d
     ```
 5.  Open a Pull Request
 
----
 
 ## License
 
 This project is licensed under the MIT License – see the `LICENSE` file for details.
 
----
 
 ## Acknowledgements
 
@@ -147,7 +137,3 @@ This project is licensed under the MIT License – see the `LICENSE` file for de
 *   Database ORM powered by Prisma
 *   Styled with Tailwind CSS
 *   Made with ❤️ by Saajaadeen
-
----
-
-## Screenshots & Demo 📸
