@@ -55,11 +55,10 @@ model Card {
 model Groups {
   id                  String        @id @default(uuid())
   name                String
+  userId              String?
   cards               Card[]
   createdAt           DateTime      @default(now())
-  createdById         String?
   updatedAt           DateTime      @updatedAt
-  isAdmin             Boolean       @default(false)
 }
 
 model Teams {

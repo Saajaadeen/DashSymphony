@@ -10,10 +10,20 @@ export default [
         route("settings", "./routes/settings/usersettings.tsx"),
         route("notifications", "./routes/notifications/usernotifications.tsx"),
         route("administration", "./routes/administration/useradministration.tsx"),
+
+        // Groups
+        route("group/create", "./routes/dashboard/groupcreate.tsx"),
+        route("group/:id/edit", "./routes/dashboard/groupedit.tsx"),
+
+        // Dashboards
         route("create", "./routes/dashboard/dashboardcreate.tsx"),
-        route("team/create", "./routes/dashboard/teamcreate.tsx"),
-        route(":id/team/edit", "./routes/dashboard/teamedit.tsx"),
         route(":id/edit", "./routes/dashboard/dashboardedit.tsx"),
+
+        // Teams
+        route("team/create", "./routes/dashboard/teamcreate.tsx"),
+        route(":id/team/edit", "./routes/dashboard/teamedit.tsx"),        
+
+        // Cards
         route(":id/card/create", "./routes/card/cardcreate.tsx"),
         route(":dashboardId/card/:cardId/edit", "./routes/card/cardedit.tsx")
     ]),

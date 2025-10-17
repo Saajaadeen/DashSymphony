@@ -11,6 +11,7 @@ import {
   getUserDetails,
   getTeams,
 } from "server/dashboard.queries.server";
+import { readPublicGroup, readPrivateGroup } from "server/group.queries.server";
 import { getUserId, requireUserId } from "server/session.server";
 import DashboardForm from "~/components/forms/DashboardForm";
 
@@ -24,6 +25,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const publicDashboards = await getPublicDashboards();
   const globalDashboards = await getGlobalDashboards();
   const teamsDashboard = await getTeams(userId);
+  const publicGroups = await readPublicGroup();
+  const privateGroups = await readPrivateGroup(userId);
 
   let landingDashboards: any[] = [];
   if (user?.isAdmin) {
@@ -36,8 +39,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     ...globalDashboards,
     ...landingDashboards,
   ];
-
-  console.log(allDashboards)
 
   const url = new URL(request.url);
   const panelId = url.searchParams.get("panel");
@@ -64,6 +65,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     allDashboards,
     cards,
     selectedDashboard,
+    publicGroups,
+    privateGroups,
   };
 }
 
@@ -76,6 +79,8 @@ export default function Dashboard() {
     globalDashboards,
     landingDashboards,
     teamsDashboard,
+    publicGroups,
+    privateGroups,
     allDashboards,
     cards,
     selectedDashboard,
@@ -91,6 +96,8 @@ export default function Dashboard() {
         globalDashboards={globalDashboards}
         landingDashboards={landingDashboards}
         teamsDashboard={teamsDashboard}
+        publicGroups={publicGroups}
+        privateGroups={privateGroups}
         allDashboards={allDashboards}
         selectedDashboard={selectedDashboard}
         cards={cards}

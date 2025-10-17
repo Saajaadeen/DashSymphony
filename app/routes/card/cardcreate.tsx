@@ -7,6 +7,7 @@ import {
 } from "react-router";
 import { createCard, getCardInfo } from "server/card.queries.server";
 import { getDashboard, getUserDetails } from "server/dashboard.queries.server";
+import { readPrivateGroup, readPublicGroup } from "server/group.queries.server";
 import { requireUserId, getUserId } from "server/session.server";
 import CardCreateModal from "~/components/modals/CardCreateModal";
 
@@ -14,10 +15,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   await requireUserId(request);
   const userId = await getUserId(request);
   const user = await getUserDetails(userId);
-  const dashboard = await getDashboard(params.id);
-  const cardsInfo = await getCardInfo(params.id)
+  const dashboard = await getDashboard(params.id!);
+  const cardsInfo = await getCardInfo(params.id!)
+  const publicGroup = await readPublicGroup();
+  const privateGroup = await readPrivateGroup(userId);
+  const groups = [ ...publicGroup, ...privateGroup ];
 
-  return { user, dashboard, cardsInfo };
+  return { user, dashboard, cardsInfo, groups };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -27,7 +31,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const url = formData.get("url") as string;
   const imageUrl = formData.get("imageUrl") as string;
   const dashboardId = formData.get("dashboardId") as string;
-  const cardGroup = formData.get("cardGroup") as string;
+  const groupId = formData.get("groupId") as string;
   const position = Number(formData.get("position"));
   const size = formData.get("size") as string;
 
@@ -36,7 +40,7 @@ export async function action({ request }: ActionFunctionArgs) {
     url,
     imageUrl,
     dashboardId,
-    cardGroup,
+    groupId,
     position,
     size,
   );
@@ -46,13 +50,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function CardCreate() {
   const { id: dashboardId } = useParams();
-  const { dashboard, cardsInfo } = useLoaderData<typeof loader>();
+  const { dashboard, cardsInfo, groups } = useLoaderData<typeof loader>();
 
   return (
     <CardCreateModal
       dashboardId={dashboardId!}
       dashboard={dashboard}
       cards={cardsInfo}
+      groups={groups}
     />
   );
 }

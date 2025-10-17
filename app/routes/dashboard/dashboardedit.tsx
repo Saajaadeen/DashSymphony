@@ -81,8 +81,6 @@ export default function DashboardEdit() {
 
   const selectedDashboard = allDashboards.find((d) => d.id === id);
 
-  console.log('Teams: ', teams)
-
   return (
     <DashboardEditModal
       isAdmin={user?.isAdmin}

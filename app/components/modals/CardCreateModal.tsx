@@ -1,61 +1,62 @@
 import type { Dashboard, Card } from "@prisma/client";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 
 type CardForm = {
   name: string;
   url: string;
   imageUrl: string;
-  cardGroup: string;
+  groupId: string;
   size: "SM" | "MD" | "LG" | "XL";
   position: number;
 };
 
 const CARD_SIZES = ["SM", "MD", "LG", "XL"] as const;
 
+type Group = {
+  id: string;
+  name: string;
+  createdAt: string;
+  userId?: string | null;
+};
+
 export default function CardCreateModal({
   dashboardId,
   dashboard,
   cards,
+  groups,
 }: {
   dashboardId: string;
   dashboard: Dashboard;
   cards: Pick<Card, "cardGroup" | "position">[];
+  groups: Group[];
 }) {
-  const cardGroups = useMemo(() => {
-    const groups = new Set<string>();
-    cards.forEach((card) => {
-      if (card.cardGroup) groups.add(card.cardGroup);
-    });
-    return Array.from(groups);
-  }, [cards]);
-
-  const getGroupCardCount = (group: string) =>
-    cards.filter((c) => c.cardGroup === group).length;
+  const getGroupCardCount = (groupId: string) =>
+    cards.filter((c) => c.cardGroup === groupId).length;
 
   const [form, setForm] = useState<CardForm>({
     name: "",
     url: "",
     imageUrl: "",
-    cardGroup: "",
+    groupId: "",
     size: "MD",
     position: 1,
   });
 
-  const [isNewGroup, setIsNewGroup] = useState(false);
   const [availablePositions, setAvailablePositions] = useState(1);
+  const hasGroups = groups && groups.length > 0;
 
   useEffect(() => {
-    const groupCount = getGroupCardCount(form.cardGroup);
+    const groupCount = getGroupCardCount(form.groupId);
     setAvailablePositions(groupCount + 1);
     setForm((prev) => ({ ...prev, position: groupCount + 1 }));
-  }, [form.cardGroup, cards]);
+  }, [form.groupId, cards]);
 
   const updateForm = (updates: Partial<CardForm>) =>
     setForm((prev) => ({ ...prev, ...updates }));
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
       <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 sm:p-7 w-full max-w-sm relative shadow-2xl border border-gray-700">
         <Link
           to={`/dashboard?panel=${dashboardId}`}
@@ -124,79 +125,64 @@ export default function CardCreateModal({
             />
           </div>
 
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block text-gray-300 text-xs font-medium mb-1">
-                Card Group
-              </label>
-              {isNewGroup ? (
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="cardGroup"
-                    maxLength={254}
-                    placeholder="New group name"
-                    value={form.cardGroup}
-                    onChange={(e) => updateForm({ cardGroup: e.target.value })}
-                    className="w-full px-3 py-2 pr-9 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-green-500 text-sm"
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsNewGroup(false);
-                      updateForm({ cardGroup: "" });
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <select
-                  name="cardGroup"
-                  value={form.cardGroup}
-                  onChange={(e) => {
-                    if (e.target.value === "new") {
-                      setIsNewGroup(true);
-                      updateForm({ cardGroup: "" });
-                    } else {
-                      updateForm({ cardGroup: e.target.value });
-                    }
-                  }}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700 text-gray-300 focus:outline-none focus:border-blue-500 text-sm"
+          <div>
+            <label className="block text-gray-300 text-xs font-medium mb-1">
+              Group
+            </label>
+            <select
+              name="groupId"
+              value={form.groupId}
+              onChange={(e) => updateForm({ groupId: e.target.value })}
+              disabled={!hasGroups}
+              className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none ${
+                hasGroups
+                  ? "bg-gray-800/50 border-gray-700 text-gray-300 focus:border-blue-500"
+                  : "bg-gray-800/30 border-gray-700 text-gray-500 cursor-not-allowed"
+              }`}
+              required
+            >
+              <option value="">
+                {hasGroups ? "Select group..." : "No groups available"}
+              </option>
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+            {!hasGroups && (
+              <p className="text-sm text-gray-400 mt-2">
+                No groups exist.{" "}
+                <Link
+                  to="/dashboard/group/create"
+                  className="text-blue-400 underline"
                 >
-                  <option value="">Select group...</option>
-                  {cardGroups.map((group) => (
-                    <option key={group} value={group}>
-                      {group}
-                    </option>
-                  ))}
-                  <option value="new">+ New Group</option>
-                </select>
-              )}
-            </div>
+                  Create a group
+                </Link>{" "}
+                to enable this dropdown.
+              </p>
+            )}
+          </div>
 
-            <div className="w-28">
-              <label className="block text-gray-300 text-xs font-medium mb-1">
-                Position (1–{availablePositions})
-              </label>
-              <input
-                type="number"
-                name="position"
-                min={1}
-                max={availablePositions}
-                value={form.position}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-                  if (value >= 1 && value <= availablePositions) {
-                    updateForm({ position: value });
-                  }
-                }}
-                className="w-full px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
-                required
-              />
-            </div>
+          <div>
+            <label className="block text-gray-300 text-xs font-medium mb-1">
+              Position (1–{availablePositions})
+            </label>
+            <input
+              type="number"
+              name="position"
+              min={1}
+              max={availablePositions}
+              value={form.position}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                if (value >= 1 && value <= availablePositions) {
+                  updateForm({ position: value });
+                }
+              }}
+              className="w-full px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+              required
+            />
           </div>
 
           <div>
@@ -236,7 +222,12 @@ export default function CardCreateModal({
             </Link>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-lg text-white font-medium shadow-md shadow-blue-500/30 text-sm transition-all"
+              disabled={!hasGroups}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                hasGroups
+                  ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-md shadow-blue-500/30"
+                  : "bg-gray-700 text-gray-400 cursor-not-allowed"
+              }`}
             >
               Save Card
             </button>

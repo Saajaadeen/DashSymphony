@@ -1,11 +1,17 @@
 import { Link } from "react-router";
 
+type Group = {
+  id: string;
+  name: string;
+  userId?: string | null;
+};
+
 type Card = {
   id: string;
   name: string;
   url?: string;
   imageUrl?: string;
-  cardGroup?: string;
+  group?: Group | null;
   position?: number;
   size?: "SM" | "MD" | "LG" | "XL";
 };
@@ -32,9 +38,9 @@ export default function DashboardDisplayForm({
   }
 
   const groupedCards = cards.reduce<Record<string, Card[]>>((acc, card) => {
-    const group = card.cardGroup || "Ungrouped";
-    if (!acc[group]) acc[group] = [];
-    acc[group].push(card);
+    const groupName = card.group?.name || "Ungrouped";
+    if (!acc[groupName]) acc[groupName] = [];
+    acc[groupName].push(card);
     return acc;
   }, {});
 
@@ -110,9 +116,7 @@ export default function DashboardDisplayForm({
                 )}`}
                 className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-500 bg-white/5 rounded-lg text-white transition-all cursor-pointer p-2 ${sizeClasses.SM}`}
               >
-                <span className="text-2xl transition-transform">
-                  +
-                </span>
+                <span className="text-2xl transition-transform">+</span>
                 <span className="mt-1 text-xs font-medium">Add</span>
               </Link>
             </div>
@@ -123,11 +127,9 @@ export default function DashboardDisplayForm({
           <div className="flex justify-start">
             <Link
               to={`/dashboard/${selectedDashboard.id}/card/create`}
-              className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-500 bg-white/5  rounded-lg text-white transition-all cursor-pointer p-2 ${sizeClasses.SM}`}
+              className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-500 bg-white/5 rounded-lg text-white transition-all cursor-pointer p-2 ${sizeClasses.SM}`}
             >
-              <span className="text-2xl transition-transform">
-                +
-              </span>
+              <span className="text-2xl transition-transform">+</span>
               <span className="mt-1 text-xs font-medium">Add</span>
             </Link>
           </div>

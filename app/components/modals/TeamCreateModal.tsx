@@ -39,7 +39,7 @@ export default function TeamCreateModal({
         )}
 
         <form method="post" action="/dashboard/team/create" className="space-y-5">
-          <input type="hidden" value={userId.id} name="userId"/>
+          <input type="hidden" value={userId?.id} name="userId"/>
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Team Name

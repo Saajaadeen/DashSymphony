@@ -5,7 +5,7 @@ export async function createCard(
   url: string,
   imageUrl: string,
   dashboardId: string,
-  cardGroup: string,
+  groupId: string,
   position: number,
   size: string,
 ) {
@@ -15,7 +15,7 @@ export async function createCard(
       url,
       imageUrl,
       dashboardId,
-      cardGroup,
+      groupId,
       position,
       size,
     },
@@ -24,11 +24,29 @@ export async function createCard(
 }
 
 export async function getCards(dashboardId: string) {
-    const cards = await prisma.card.findMany({
-        where: { dashboardId },
-    });
-    
-    return cards;
+  const cards = await prisma.card.findMany({
+    where: { dashboardId },
+    select: {
+      id: true,
+      name: true,
+      url: true,
+      imageUrl: true,
+      dashboardId: true,
+      size: true,
+      position: true,
+      createdAt: true,
+      updatedAt: true,
+      group: {
+        select: {
+          id: true,
+          name: true,
+          userId: true,
+        },
+      },
+    },
+  });
+
+  return cards;
 }
 
 export async function getCardInfo(dashboardId: string) {
@@ -41,7 +59,6 @@ export async function getCardInfo(dashboardId: string) {
     
     return cards;
 }
-
 
 export async function getCard(cardId: string | undefined) {
   if (!cardId) return null;
@@ -58,7 +75,7 @@ export async function updateCard(
   name: string,
   url: string,
   imageUrl: string,
-  cardGroup: string,
+  groupId: string,
   position: number,
   size: string,
 ) {
@@ -101,7 +118,7 @@ export async function updateCard(
           name,
           url,
           imageUrl,
-          cardGroup,
+          groupId,
           position: clampedPosition,
           size,
         },
@@ -114,7 +131,7 @@ export async function updateCard(
         name,
         url,
         imageUrl,
-        cardGroup,
+        groupId,
         size,
       },
     });
