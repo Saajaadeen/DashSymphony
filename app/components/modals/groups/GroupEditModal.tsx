@@ -70,7 +70,7 @@ export default function GroupEditModal({ group, user }: any) {
               name="private"
               checked={isPrivate}
               onChange={(e) => setIsPrivate(e.target.checked)}
-              className="w-5 h-5"
+              className="w-4 h-4"
             />
             <label className="ml-2 text-gray-300 text-sm" htmlFor="private">
               Private Group (Only Seen by <strong>{user.firstName}</strong>)
