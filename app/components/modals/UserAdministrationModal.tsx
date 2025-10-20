@@ -56,7 +56,7 @@ export default function UserAdministrationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center px-4">
       <div className="w-[950px] h-[550px] max-w-5xl flex bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl shadow-xl overflow-hidden">
         <aside className="w-1/4 bg-white/10 p-6 flex flex-col gap-4 border-r border-white/20">
           <h2 className="text-lg font-semibold text-white mb-4">Admin Menu</h2>

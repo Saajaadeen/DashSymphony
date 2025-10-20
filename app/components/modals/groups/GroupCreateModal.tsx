@@ -6,7 +6,7 @@ export default function GroupCreateModal({ userId }: { userId: string }) {
   const [isPrivate, setIsPrivate] = useState(false);
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
       <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 w-full max-w-md relative shadow-2xl border border-gray-700">
         <Link
           to="/dashboard"

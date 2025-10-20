@@ -63,7 +63,7 @@ export default function CardEditModal({
     setForm((prev) => ({ ...prev, ...updates }));
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
       <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 sm:p-7 w-full max-w-sm relative shadow-2xl border border-gray-700">
         <Link
           to={`/dashboard?panel=${dashboardId}`}

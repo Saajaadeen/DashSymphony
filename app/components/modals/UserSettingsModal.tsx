@@ -115,7 +115,7 @@ export default function UserSettingsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center px-4">
       {actionData?.error && (
         <div className="absolute top-10 left-1/2 transform -translate-x-1/2 z-50 mb-4 p-4 bg-red-900/80 border border-red-700 rounded-xl text-red-200 text-sm shadow-lg">
           {actionData.error}

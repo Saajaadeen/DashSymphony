@@ -1,6 +1,6 @@
 import type { Dashboard, Card } from "@prisma/client";
 import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useActionData } from "react-router";
 
 type CardForm = {
   name: string;
@@ -33,15 +33,18 @@ export default function CardCreateModal({
 }) {
   const getGroupCardCount = (groupId: string) =>
     cards.filter((c) => c.cardGroup === groupId).length;
+  const actionData = useActionData();
 
   const [form, setForm] = useState<CardForm>({
     name: "",
     url: "",
     imageUrl: "",
     groupId: "",
-    size: "MD",
+    size: "SM",
     position: 1,
   });
+
+  console.log(cards)
 
   const [availablePositions, setAvailablePositions] = useState(1);
   const hasGroups = groups && groups.length > 0;
@@ -56,7 +59,7 @@ export default function CardCreateModal({
     setForm((prev) => ({ ...prev, ...updates }));
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
       <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 sm:p-7 w-full max-w-sm relative shadow-2xl border border-gray-700">
         <Link
           to={`/dashboard?panel=${dashboardId}`}
@@ -64,6 +67,12 @@ export default function CardCreateModal({
         >
           ✕
         </Link>
+
+        {actionData?.error && (
+          <div className="mb-4 p-4 bg-red-900/50 border border-red-700 rounded-xl text-red-200 text-sm">
+            {actionData.error}
+          </div>
+        )}
 
         <h3 className="text-white text-xl font-bold mb-1">Create Card</h3>
         <p className="text-gray-400 text-xs mb-4">
